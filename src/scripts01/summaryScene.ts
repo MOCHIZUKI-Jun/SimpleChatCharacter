@@ -74,6 +74,9 @@ export class SummaryScene extends Phaser.Scene {
     this.disposables.forEach(d => d.dispose());
   }
 
+  /**
+   * フレーム更新
+   */
   update() {
     if (!this.isShow) return;
   }
