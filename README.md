@@ -7,3 +7,6 @@
 # Font
 - スマートフォントUI
     - フロップデザイン様 https://www.flopdesign.com/
+
+# GitHub Pages
+- [https://MOCHIZUKI-Jun.github.io/SimpleChatCharacter/page00/index.html](https://MOCHIZUKI-Jun.github.io/SimpleChatCharacter/page00/index.html)
