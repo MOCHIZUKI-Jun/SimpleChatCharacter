@@ -1,0 +1,69 @@
+# デプロイ
+# https://ja.vitejs.dev/guide/static-deploy
+
+name: Deploy static content to Pages
+
+on:
+  # 「v1.0.0」のようなタグをトリガーにする
+  push:
+    tags:
+      - v*
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# GITHUB_TOKEN のパーミッションを設定し、GitHub Pages へのデプロイを許可します
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同じグループの新しいワークフローが実行される際に、進行中の実行をキャンセル
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Set up Node.js
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      # Install dependencies (package-lock.jsonを見る)
+      - name: Install dependencies
+        run: npm ci
+      
+      # Build
+      - name: Build
+        run: npm run build
+        
+      # Configure Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      # Upload artifact
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # dist フォルダーのアップロード
+          path: './dist'
+
+      # Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
