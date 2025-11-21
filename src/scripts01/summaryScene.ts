@@ -91,13 +91,14 @@ export class SummaryScene extends Phaser.Scene {
    * ChatGPT: サンプル画像を中央に表示する
    */
   private showSampleImage() {
-    // ChatGPT: 画像がロード済みか確認してから配置する
-
     // ChatGPT: カメラの中心座標を取得して中央配置する
     const {centerX, centerY} = this.cameras.main;
     this.sampleImage = this.add.image(centerX, centerY, SAMPLE_IMAGE_KEY);
     this.sampleImage.setDepth(DefineDepth.UI - 1);
     this.sampleImage.setOrigin(0.5, 0.5);
+
+    // ChatGPT: 固定サイズで300x300ピクセルに設定する
+    this.sampleImage.setDisplaySize(300, 300);
   }
 }
 new Phaser.Game(createConfig([SummaryScene]));
