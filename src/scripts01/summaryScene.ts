@@ -33,7 +33,7 @@ export class SummaryScene extends Phaser.Scene {
   private readonly disposables: SimpleDisposableInterface[] = [];
 
   /**
-   * ChatGPT: コンストラクタ
+   * コンストラクタ
    */
   constructor() {
     super(SummaryScene.Key);
@@ -76,15 +76,12 @@ export class SummaryScene extends Phaser.Scene {
     if (isLocalhost()) new FpsView(this);
   }
 
-  /**
-   * ChatGPT: 破棄処理
-   */
   public dispose() {
     this.disposables.forEach(d => d.dispose());
   }
 
   /**
-   * ChatGPT: フレーム更新
+   * フレーム更新
    */
   update() {
     if (!this.isShow) return;
