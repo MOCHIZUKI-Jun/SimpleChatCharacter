@@ -1,0 +1,68 @@
+{
+  "frames": [
+    {
+      "filename": "face_base",
+      "frame": { "x": 71, "y": 131, "w": 305, "h": 376 }
+    },
+    {
+      "filename": "hair_back",
+      "frame": { "x": 21, "y": 598, "w": 349, "h": 507 }
+    },
+    {
+      "filename": "hair_front",
+      "frame": { "x": 485, "y": 326, "w": 311, "h": 292 }
+    },
+    {
+      "filename": "crown",
+      "frame": { "x": 438, "y": 66, "w": 148, "h": 93 }
+    },
+    {
+      "filename": "horn_left",
+      "frame": { "x": 651, "y": 95, "w": 91, "h": 181 }
+    },
+    {
+      "filename": "horn_right",
+      "frame": { "x": 895, "y": 92, "w": 93, "h": 184 }
+    },
+    {
+      "filename": "eye_left_open",
+      "frame": { "x": 637, "y": 766, "w": 102, "h": 82 }
+    },
+    {
+      "filename": "eye_right_open",
+      "frame": { "x": 849, "y": 758, "w": 101, "h": 89 }
+    },
+    {
+      "filename": "eye_left_closed",
+      "frame": { "x": 654, "y": 713, "w": 79, "h": 15 }
+    },
+    {
+      "filename": "eye_right_closed",
+      "frame": { "x": 852, "y": 712, "w": 79, "h": 14 }
+    },
+    {
+      "filename": "eyebrow_left",
+      "frame": { "x": 654, "y": 713, "w": 79, "h": 15 }
+    },
+    {
+      "filename": "eyebrow_right",
+      "frame": { "x": 852, "y": 712, "w": 79, "h": 14 }
+    },
+    {
+      "filename": "mouth_fang",
+      "frame": { "x": 735, "y": 1100, "w": 113, "h": 45 }
+    },
+    {
+      "filename": "mouth_normal",
+      "frame": { "x": 349, "y": 1390, "w": 119, "h": 45 }
+    },
+    {
+      "filename": "mouth_small",
+      "frame": { "x": 736, "y": 1424, "w": 92, "h": 12 }
+    },
+    {
+      "filename": "nose",
+      "frame": { "x": 257, "y": 1212, "w": 43, "h": 36 }
+    }
+  ]
+}
