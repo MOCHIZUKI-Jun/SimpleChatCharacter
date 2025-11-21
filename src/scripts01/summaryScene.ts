@@ -41,7 +41,7 @@ export class SummaryScene extends Phaser.Scene {
   }
 
   /**
-   * ChatGPT: プリロード
+   * プリロード
    */
   preload() {
     console.log('SummaryScene preload');
@@ -51,7 +51,7 @@ export class SummaryScene extends Phaser.Scene {
   }
 
   /**
-   * ChatGPT: ゲームオブジェクト初期化
+   * ゲームオブジェクト初期化
    */
   create() {
     console.log('SummaryScene create');
