@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 import {createConfig} from "../define.ts";
-import {AssetLoader} from "../utility/assetLoader.ts";
 import {
   BACKGROUND_COLOR, DefineDepth, LABEL_TEXT_SIZE, TITLE,
+  SAMPLE_IMAGE_PATH,
 } from "./define.ts";
 import {BackgroundView} from "../commonViews/backgroundView.ts";
 import {FpsView} from "../commonViews/fpsView.ts";
@@ -10,6 +10,8 @@ import {isLocalhost} from "../utility/localhostUtility.ts";
 import {SimpleDisposableInterface} from "../utility/simpleDisposableInterface.ts";
 import {TextLabel} from "../commonViews/textLabel.ts";
 import {LABEL_TEXT_COLOR} from "../scripts00/define.ts";
+
+const SAMPLE_IMAGE_KEY = 'sample-image';
 
 
 /**
@@ -26,6 +28,8 @@ export class SummaryScene extends Phaser.Scene {
   // 表示フラグ
   private isShow = false;
 
+  private sampleImage?: Phaser.GameObjects.Image;
+
   private readonly disposables: SimpleDisposableInterface[] = [];
 
   /**
@@ -41,8 +45,9 @@ export class SummaryScene extends Phaser.Scene {
    */
   preload() {
     console.log('SummaryScene preload');
-    
-    //this.load.image(IMAGE_KEY, TEXTURE_PATH);
+
+    // ChatGPT: サンプル画像を標準ロードで読み込む
+    this.load.image(SAMPLE_IMAGE_KEY, SAMPLE_IMAGE_PATH);
   }
 
   /**
@@ -57,9 +62,10 @@ export class SummaryScene extends Phaser.Scene {
     console.log(`idx: ${idx}`);
 
     const canvas = this.game.canvas;
-    
+
     // 背景
     new BackgroundView(this, BACKGROUND_COLOR);
+    this.showSampleImage();
     // テキストラベル
     this.textLabel = new TextLabel(this, LABEL_TEXT_COLOR, 1, LABEL_TEXT_SIZE);
     this.textLabel.setPosition(canvas.width/2, canvas.height * 0.95);
@@ -80,6 +86,18 @@ export class SummaryScene extends Phaser.Scene {
   update() {
     if (!this.isShow) return;
   }
-}
 
-new Phaser.Game(createConfig([SummaryScene, AssetLoader]));
+  /**
+   * ChatGPT: サンプル画像を中央に表示する
+   */
+  private showSampleImage() {
+    // ChatGPT: 画像がロード済みか確認してから配置する
+
+    // ChatGPT: カメラの中心座標を取得して中央配置する
+    const {centerX, centerY} = this.cameras.main;
+    this.sampleImage = this.add.image(centerX, centerY, SAMPLE_IMAGE_KEY);
+    this.sampleImage.setDepth(DefineDepth.UI - 1);
+    this.sampleImage.setOrigin(0.5, 0.5);
+  }
+}
+new Phaser.Game(createConfig([SummaryScene]));
