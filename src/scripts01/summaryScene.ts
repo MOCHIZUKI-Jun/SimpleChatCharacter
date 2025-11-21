@@ -92,10 +92,6 @@ export class SummaryScene extends Phaser.Scene {
    */
   private showSampleImage() {
     // ChatGPT: 画像がロード済みか確認してから配置する
-    if (!this.textures.exists(SAMPLE_IMAGE_KEY)) {
-      console.log('sample image texture missing');
-      return;
-    }
 
     // ChatGPT: カメラの中心座標を取得して中央配置する
     const {centerX, centerY} = this.cameras.main;
