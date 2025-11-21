@@ -100,8 +100,9 @@ export class SummaryScene extends Phaser.Scene {
       return;
     }
 
-    const canvas = this.game.canvas;
-    this.sampleImage = this.add.image(canvas.width / 2, canvas.height / 2, SAMPLE_IMAGE_KEY);
+    // ChatGPT: カメラの中心座標を取得して中央配置する
+    const {centerX, centerY} = this.cameras.main;
+    this.sampleImage = this.add.image(centerX, centerY, SAMPLE_IMAGE_KEY);
     this.sampleImage.setDepth(DefineDepth.UI - 1);
     this.sampleImage.setOrigin(0.5, 0.5);
   }
