@@ -76,6 +76,7 @@ export class SummaryScene extends Phaser.Scene {
     // 背景
     new BackgroundView(this, BACKGROUND_COLOR);
     this.showSampleMesh();
+    this.showSampleImage();
     // テキストラベル
     this.textLabel = new TextLabel(this, LABEL_TEXT_COLOR, 1, LABEL_TEXT_SIZE);
     this.textLabel.setPosition(canvas.width/2, canvas.height * 0.95);
@@ -172,6 +173,16 @@ export class SummaryScene extends Phaser.Scene {
     this.meshBaseVertices = logicalVertices;
     this.meshVertexLogicalIndices = this.buildVertexLogicalIndexMap(indices, logicalVertices.length);
     this.isShow = true;
+  }
+
+  /** GPT-5.1-Codex-Max: 右下にサンプルイメージを配置する */
+  private showSampleImage() {
+    const {width, height} = this.cameras.main;
+    const sampleImage = this.add.image(width * 0.95, height * 0.95, SAMPLE_IMAGE_KEY);
+    // GPT-5.1-Codex-Max: 右下基準で小さく表示する
+    sampleImage.setOrigin(1, 1);
+    sampleImage.setScale(0.2);
+    sampleImage.setDepth(DefineDepth.UI - 1);
   }
 
   /** GPT-5.1-Codex-Max: 実頂点から論理頂点への対応表を生成する */
