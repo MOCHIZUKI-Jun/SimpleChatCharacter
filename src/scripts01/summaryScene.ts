@@ -96,10 +96,12 @@ export class SummaryScene extends Phaser.Scene {
   update() {
     if (!this.isShow || !this.hairMesh) return;
 
-    // ChatGPT: 頂点を時間経過で揺らす
+    // GPT-5.1-Codex-Max: 頂点を時間経過で揺らす
     const time = this.time.now;
-    const waveSpeed = 0.0025;
-    const amplitude = 16;
+    // GPT-5.1-Codex-Max: 波速と振幅を強め、時間で変化する揺れ幅を与える
+    const waveSpeed = 0.0065;
+    const amplitude = 20;
+    const amplitudePulse = 1 + 0.3 * Math.sin(time * 0.002);
     const verticesPerRow = this.meshColumns + 1;
 
     this.hairMesh.vertices.forEach((vertex, index) => {
@@ -109,8 +111,8 @@ export class SummaryScene extends Phaser.Scene {
 
       const rowIndex = Math.floor(logicalIndex / verticesPerRow);
       const progress = rowIndex / this.meshRows;
-      const sway = Math.sin(time * waveSpeed + rowIndex * 0.7) * amplitude * progress;
-      const lift = Math.cos(time * waveSpeed * 0.8 + rowIndex * 0.4) * 3 * (1 - progress);
+      const sway = Math.sin(time * waveSpeed + rowIndex * 0.9) * amplitude * amplitudePulse * progress;
+      const lift = Math.cos(time * waveSpeed * 0.95 + rowIndex * 0.5) * 4 * (1 - progress) * amplitudePulse;
 
       vertex.x = base.x + sway;
       vertex.y = base.y + lift;
@@ -139,7 +141,9 @@ export class SummaryScene extends Phaser.Scene {
         const x = Phaser.Math.Linear(-meshWidth / 2, meshWidth / 2, u);
 
         vertices.push(x, y);
-        uvs.push(u, v);
+        // GPT-5.1-Codex-Max: Mesh の UV は v=0 が下になるため、上下反転を防ぐために v を反転する
+        const flippedV = 1 - v;
+        uvs.push(u, flippedV);
         logicalVertices.push(new Phaser.Math.Vector3(x, y, 0));
       }
     }
