@@ -170,8 +170,16 @@ export class SummaryScene extends Phaser.Scene {
     this.hairMesh.setOrtho(meshWidth, meshHeight);
     // GPT-5.1-Codex-Max: 論理頂点の基準座標と対応インデックスを保持する
     this.meshBaseVertices = logicalVertices;
-    this.meshVertexLogicalIndices = Array.from({length: logicalVertices.length}, (_, i) => i);
+    this.meshVertexLogicalIndices = this.buildVertexLogicalIndexMap(indices, logicalVertices.length);
     this.isShow = true;
+  }
+
+  /** GPT-5.1-Codex-Max: 実頂点から論理頂点への対応表を生成する */
+  private buildVertexLogicalIndexMap(indices: number[], logicalVertexCount: number): number[] {
+    // GPT-5.1-Codex-Max: インデックス付き追加時はMesh.verticesと同順になるのでコピーする
+    if (indices.length > 0) return [...indices];
+    // GPT-5.1-Codex-Max: インデックス未使用の場合は順序通りにマッピングする
+    return Array.from({length: logicalVertexCount}, (_, i) => i);
   }
 }
 new Phaser.Game(createConfig([SummaryScene]));
