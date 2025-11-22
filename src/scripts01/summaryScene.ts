@@ -122,8 +122,6 @@ export class SummaryScene extends Phaser.Scene {
     const uvs: number[] = [];
     const indices: number[] = [];
 
-    this.meshBaseVertices = [];
-
     for (let row = 0; row <= this.meshRows; row++) {
       const v = row / this.meshRows;
       const y = Phaser.Math.Linear(-meshHeight / 2, meshHeight / 2, v);
@@ -134,7 +132,6 @@ export class SummaryScene extends Phaser.Scene {
 
         vertices.push(x, y);
         uvs.push(u, v);
-        this.meshBaseVertices.push(new Phaser.Math.Vector3(x, y, 0));
       }
     }
 
@@ -155,6 +152,10 @@ export class SummaryScene extends Phaser.Scene {
     this.hairMesh.hideCCW = false;
     this.hairMesh.addVertices(vertices, uvs, indices);
     this.hairMesh.setOrtho(meshWidth, meshHeight);
+    // GPT-5.1-Codex-Max: 実際の頂点配列から基準座標を取得し、更新処理での参照ずれを防ぐ
+    this.meshBaseVertices = this.hairMesh.vertices.map(
+      vertex => new Phaser.Math.Vector3(vertex.x, vertex.y, vertex.z)
+    );
     this.isShow = true;
   }
 }
