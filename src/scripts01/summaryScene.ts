@@ -117,6 +117,8 @@ export class SummaryScene extends Phaser.Scene {
       vertex.x = base.x + sway;
       vertex.y = base.y + lift;
     });
+    // GPT-5.1-Codex-Max: 頂点更新を描画に反映させる
+    this.hairMesh.setDirty();
   }
 
   /**
@@ -167,7 +169,7 @@ export class SummaryScene extends Phaser.Scene {
     this.hairMesh.setOrtho(meshWidth, meshHeight);
     // GPT-5.1-Codex-Max: 論理頂点の基準座標と対応インデックスを保持する
     this.meshBaseVertices = logicalVertices;
-    this.meshVertexLogicalIndices = indices.slice();
+    this.meshVertexLogicalIndices = Array.from({length: logicalVertices.length}, (_, i) => i);
     this.isShow = true;
   }
 }
