@@ -117,8 +117,7 @@ export class SummaryScene extends Phaser.Scene {
       vertex.x = base.x + sway;
       vertex.y = base.y + lift;
     });
-    // GPT-5.1-Codex-Max: 頂点更新を描画に反映させる
-    this.hairMesh.setDirty();
+    // GPT-5.1-Codex-Max: ignoreDirtyCacheで毎フレーム変形が反映されるため追加処理は不要
   }
 
   /**
@@ -163,6 +162,8 @@ export class SummaryScene extends Phaser.Scene {
     }
 
     this.hairMesh = this.add.mesh(centerX, centerY, SAMPLE_IMAGE_KEY);
+    // GPT-5.1-Codex-Max: 頂点ごとの揺らぎを毎フレーム反映させるためダーティキャッシュを無効化
+    this.hairMesh.ignoreDirtyCache = true;
     this.hairMesh.setDepth(DefineDepth.UI - 1);
     this.hairMesh.hideCCW = false;
     this.hairMesh.addVertices(vertices, uvs, indices);
