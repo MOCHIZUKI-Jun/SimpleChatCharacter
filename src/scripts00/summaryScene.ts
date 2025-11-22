@@ -2,8 +2,9 @@ import Phaser from 'phaser';
 import {createConfig} from "../define.ts";
 import {AssetLoader} from "../utility/assetLoader.ts";
 import {
-  BACKGROUND_COLOR,
-  DefineDepth,
+  BACKGROUND_COLOR, BODY_TEXTURE_KEY, BODY_TEXTURE_PATH,
+  DefineDepth, FACE_ATLAS_JSON_PATH,
+  FACE_ATLAS_KEY, FACE_ATLAS_PATH,
   LABEL_TEXT_COLOR,
   LABEL_TEXT_SIZE,
   TITLE,
@@ -11,8 +12,8 @@ import {
 import {BackgroundView} from "../commonViews/backgroundView.ts";
 import {TextLabel} from "../commonViews/textLabel.ts";
 import {FpsView} from "../commonViews/fpsView.ts";
-import {isLocalhost} from "../utility/localhostUtility.ts";
 import {SimpleDisposableInterface} from "../utility/simpleDisposableInterface.ts";
+import {CharacterView} from "./characterView.ts";
 
 
 /**
@@ -23,6 +24,8 @@ export class SummaryScene extends Phaser.Scene {
   // シーンキー
   public static Key = 'SummaryScene';
   
+  // キャラクタービュー
+  private characterView!: CharacterView;
   // テキストラベル
   private textLabel!: TextLabel;
 
@@ -44,6 +47,9 @@ export class SummaryScene extends Phaser.Scene {
    */
   preload() {
     console.log('SummaryScene preload');
+
+    this.load.atlas(FACE_ATLAS_KEY, FACE_ATLAS_PATH, FACE_ATLAS_JSON_PATH);
+    this.load.image(BODY_TEXTURE_KEY, BODY_TEXTURE_PATH);
   }
 
   /**
@@ -67,12 +73,16 @@ export class SummaryScene extends Phaser.Scene {
     this.textLabel.setDepth(DefineDepth.UI);
     this.textLabel.setTextAsync(TITLE).then();
     
+    // キャラクタービューを追加
+    this.characterView = new CharacterView(this);
+    
     // FPS表示
-    if (isLocalhost()) new FpsView(this);
+    new FpsView(this);
   }
   
   public dispose() {
     this.disposables.forEach(d => d.dispose());
+    this.characterView.dispose();
   }
   
   /**

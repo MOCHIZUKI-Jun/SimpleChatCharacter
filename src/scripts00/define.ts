@@ -10,9 +10,23 @@ export const CATEGORY = 0;
 // シェーダーフォルダ名
 export const SHADER_FOLDER = 'shaders00';
 
-// jsonファイルパス
-export const PATH_JSONS = {
-  SHEET_00_01: `../jsons/jsons00/sheet00-01.json`
+// 顔テクスチャアトラス
+export const FACE_ATLAS_KEY = 'image-face00';
+export const FACE_ATLAS_PATH = `${import.meta.env.BASE_URL}textures/textures00/image_face00.webp`;
+export const FACE_ATLAS_JSON_PATH = `${import.meta.env.BASE_URL}jsons/jsons00/sheet00-01.json`;
+
+// 体テクスチャ
+export const BODY_TEXTURE_KEY = 'image-body00';
+export const BODY_TEXTURE_PATH = `${import.meta.env.BASE_URL}textures/textures00/image_body00.webp`;
+
+/**
+ * 顔アトラスのフレーム名
+ */
+export const FACE_ATLAS_PART = {
+  // 顔ベース
+  FACE_BASE: "face_base",
+  // 後ろ髪
+  HAIR_BACK: "hair_back",
 }
 
 /**
@@ -20,6 +34,8 @@ export const PATH_JSONS = {
  */
 export const DefineDepth = {
   BACKGROUND: -1,
+  CHARACTER: 10,
+  DEBUG_ANCHOR: 90,
   UI: 100,
 }
 
