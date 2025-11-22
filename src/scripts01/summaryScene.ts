@@ -1,8 +1,13 @@
 import Phaser from 'phaser';
 import {createConfig} from "../define.ts";
 import {
-  BACKGROUND_COLOR, DefineDepth, LABEL_TEXT_SIZE, TITLE,
+  BACKGROUND_COLOR,
+  DefineDepth,
+  FACE_ATLAS_PATH,
+  FACE_SHEET_PATH,
+  LABEL_TEXT_SIZE,
   SAMPLE_IMAGE_PATH,
+  TITLE,
 } from "./define.ts";
 import {BackgroundView} from "../commonViews/backgroundView.ts";
 import {FpsView} from "../commonViews/fpsView.ts";
@@ -11,8 +16,12 @@ import {TextLabel} from "../commonViews/textLabel.ts";
 import {LABEL_TEXT_COLOR} from "../scripts00/define.ts";
 
 const SAMPLE_IMAGE_KEY = 'sample-image';
+const FACE_ATLAS_KEY = 'image-face03';
+const FACE_SHEET_KEY = 'sheet00-01';
 
 type Vertex = Phaser.Geom.Mesh.Vertex;
+type SheetFrame = { filename: string; frame: { x: number; y: number; w: number; h: number } };
+type SheetData = { frames: SheetFrame[] };
 
 /**
  * SummaryScene
@@ -44,6 +53,8 @@ export class SummaryScene extends Phaser.Scene {
   private character!: Phaser.GameObjects.Container;
   private prevCharX = 0;
   private timeSec = 0;
+
+  private faceImage?: Phaser.GameObjects.Image;
   
 
   private readonly meshColumns = 1;
@@ -67,6 +78,9 @@ export class SummaryScene extends Phaser.Scene {
 
     // ChatGPT: サンプル画像を標準ロードで読み込む
     this.load.image(SAMPLE_IMAGE_KEY, SAMPLE_IMAGE_PATH);
+    // ChatGPT: 顔テクスチャと座標シートをロード
+    this.load.image(FACE_ATLAS_KEY, FACE_ATLAS_PATH);
+    this.load.json(FACE_SHEET_KEY, FACE_SHEET_PATH);
   }
 
   /**
@@ -84,6 +98,7 @@ export class SummaryScene extends Phaser.Scene {
 
     // 背景
     new BackgroundView(this, BACKGROUND_COLOR);
+    this.showFaceBaseImage();
     this.showSampleMesh2();
     this.showSampleImage();
     // テキストラベル
@@ -193,7 +208,30 @@ export class SummaryScene extends Phaser.Scene {
     // ignoreDirtyCache = true にしてあるので、
     // 頂点更新後に特別なフラグ更新は不要（毎フレーム再計算される想定） [oai_citation:9‡rexrainbow.github.io](https://rexrainbow.github.io/phaser3-rex-notes/docs/site/mesh/)
   }
-  
+
+  /** ChatGPT: シートからfaceテクスチャにフレームを登録する */
+  private prepareFaceTextureFrames() {
+    const sheet = this.cache.json.get(FACE_SHEET_KEY) as SheetData | undefined;
+    if (!sheet) return;
+
+    const texture = this.textures.get(FACE_ATLAS_KEY);
+    if (!texture) return;
+
+    sheet.frames.forEach((frame: SheetFrame) => {
+      const {x, y, w, h} = frame.frame;
+      texture.add(frame.filename, 0, x, y, w, h);
+    });
+  }
+
+  /** ChatGPT: face_baseフレームを画面中央に表示する */
+  private showFaceBaseImage() {
+    this.prepareFaceTextureFrames();
+    const {centerX, centerY} = this.cameras.main;
+    this.faceImage = this.add.image(centerX, centerY, FACE_ATLAS_KEY, 'face_base');
+    this.faceImage.setDepth(DefineDepth.UI - 2);
+    this.faceImage.setOrigin(0.5, 0.5);
+  }
+
   /**
    * Mesh.GenerateGridVertsを使うパターン
    */
