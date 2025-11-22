@@ -1,5 +1,12 @@
 import * as Phaser from "phaser";
-import {BODY_TEXTURE_KEY, DefineDepth, FACE_ATLAS_KEY, FACE_ATLAS_PART, MOUTH_TEXTURE_KEY} from "./define.ts";
+import {
+  BODY_TEXTURE_KEY,
+  DefineDepth,
+  FACE_ATLAS_KEY,
+  FACE_ATLAS_PART,
+  MOUTH_TEXTURE_KEY,
+  TAIL_TEXTURE_KEY
+} from "./define.ts";
 import {GetColorCodeByRGB} from "../utility/colorUtility.ts";
 import {getWorldPos} from "../utility/transformUtility.ts";
 
@@ -21,6 +28,11 @@ export class CharacterView extends Phaser.GameObjects.Container {
   private rootContainer!: Container;
   // 体の回転コンテナ
   private bodyRotateContainer!: Container;
+  // 尻尾のコンテナ
+  private tailContainer!: Container;
+  // 尻尾のイメージ
+  private tailImage!: Image;
+  
   // 体のイメージ
   private bodyImage!: Image;
   // 頭前面のコンテナ
@@ -31,8 +43,19 @@ export class CharacterView extends Phaser.GameObjects.Container {
   private headBackContainer!: Container;
   // 後ろ髪のイメージ
   private hairBackImage!: Image
+  // 右角のコンテナ
+  private hornRightContainer!: Container;
+  // 右角のイメージ
+  private hornRightImage!: Image
+  // 左角のコンテナ
+  private hornLeftContainer!: Container
+  // 左角のイメージ
+  private hornLeftImage!: Image
   // 前髪のイメージ
   private hairFrontImage!: Image;
+  // 王冠のイメージ
+  private crownImage!: Image;
+  
   // 右目のコンテナ
   private eyeRightContainer!: Container;
   // 左目のコンテナ
@@ -78,16 +101,28 @@ export class CharacterView extends Phaser.GameObjects.Container {
     // ルートコンテナ
     this.rootContainer = this.createContainer(0, 0);
     
+    const tailScale = 0.8;
     const bodyScale = 0.55;
     const hairBackScale = 0.8;
     const faceScale = 0.8;
+    const hornScale = 0.8;
     const hairFrontScale = 0.8;
+    const crownScale = 0.7;
     const eyeScale = 0.66;
     const mouthScale = 0.6;
     
     // 体回転コンテナ
     this.bodyRotateContainer = this.createContainer(0, 500);
     this.rootContainer.add(this.bodyRotateContainer);
+    
+    // 尻尾コンテナ
+    this.tailContainer = this.createContainer(150, -60);
+    this.bodyRotateContainer.add(this.tailContainer);
+    
+    // 尻尾イメージ
+    this.tailImage = this.scene.add.image(50, -130, TAIL_TEXTURE_KEY);
+    this.tailImage.setScale(tailScale);
+    this.tailContainer.add(this.tailImage);
 
     // 頭背面コンテナ
     this.headBackContainer = this.createContainer(0, -540);
@@ -111,10 +146,33 @@ export class CharacterView extends Phaser.GameObjects.Container {
     this.faceBaseImage.setScale(faceScale);
     this.headFrontContainer.add(this.faceBaseImage);
     
+    // 右角コンテナ
+    this.hornRightContainer = this.createContainer(110, -210);
+    this.headFrontContainer.add(this.hornRightContainer);
+    
+    // 右角イメージ
+    this.hornRightImage = this.scene.add.image(0, -30, FACE_ATLAS_KEY, FACE_ATLAS_PART.HORN_RIGHT);
+    this.hornRightImage.setScale(hornScale);
+    this.hornRightContainer.add(this.hornRightImage);
+    
+    // 左角コンテナ
+    this.hornLeftContainer = this.createContainer(-110, -210);
+    this.headFrontContainer.add(this.hornLeftContainer);
+    
+    // 左角イメージ
+    this.hornLeftImage = this.scene.add.image(0, -30, FACE_ATLAS_KEY, FACE_ATLAS_PART.HORN_LEFT);
+    this.hornLeftImage.setScale(hornScale);
+    this.hornLeftContainer.add(this.hornLeftImage);
+    
     // 前髪イメージ
     this.hairFrontImage = this.scene.add.image(0, -146, FACE_ATLAS_KEY, FACE_ATLAS_PART.HAIR_FRONT);
     this.hairFrontImage.setScale(hairFrontScale);
     this.headFrontContainer.add(this.hairFrontImage);
+    
+    // 王冠イメージ
+    this.crownImage = this.scene.add.image(0, -290, FACE_ATLAS_KEY, FACE_ATLAS_PART.CROWN);
+    this.crownImage.setScale(crownScale);
+    this.headFrontContainer.add(this.crownImage);
     
     // 右目コンテナ
     this.eyeRightContainer = this.createContainer(66, -78);

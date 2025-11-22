@@ -23,6 +23,10 @@ export const BODY_TEXTURE_PATH = `${import.meta.env.BASE_URL}textures/textures00
 export const MOUTH_TEXTURE_KEY = 'image-mouth00';
 export const MOUTH_TEXTURE_PATH = `${import.meta.env.BASE_URL}textures/textures00/image_face00_mouth.png`;
 
+// 尻尾テクスチャ
+export const TAIL_TEXTURE_KEY = 'image-tail00';
+export const TAIL_TEXTURE_PATH = `${import.meta.env.BASE_URL}textures/textures00/image_tail00.webp`;
+
 /**
  * 顔アトラスのフレーム名
  */
@@ -45,6 +49,12 @@ export const FACE_ATLAS_PART = {
   EYEBROW_RIGHT: "eyebrow_right",
   // 左眉
   EYEBROW_LEFT: "eyebrow_left",
+  // 右角
+  HORN_RIGHT: "horn_right",
+  // 左角
+  HORN_LEFT: "horn_left",
+  // 王冠
+  CROWN: "crown",
 }
 
 /**

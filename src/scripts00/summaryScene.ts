@@ -6,7 +6,7 @@ import {
   DefineDepth, FACE_ATLAS_JSON_PATH,
   FACE_ATLAS_KEY, FACE_ATLAS_PATH,
   LABEL_TEXT_COLOR,
-  LABEL_TEXT_SIZE, MOUTH_TEXTURE_KEY, MOUTH_TEXTURE_PATH,
+  LABEL_TEXT_SIZE, MOUTH_TEXTURE_KEY, MOUTH_TEXTURE_PATH, TAIL_TEXTURE_KEY, TAIL_TEXTURE_PATH,
   TITLE,
 } from "./define.ts";
 import {BackgroundView} from "../commonViews/backgroundView.ts";
@@ -51,6 +51,7 @@ export class SummaryScene extends Phaser.Scene {
     this.load.atlas(FACE_ATLAS_KEY, FACE_ATLAS_PATH, FACE_ATLAS_JSON_PATH);
     this.load.image(BODY_TEXTURE_KEY, BODY_TEXTURE_PATH);
     this.load.image(MOUTH_TEXTURE_KEY, MOUTH_TEXTURE_PATH);
+    this.load.image(TAIL_TEXTURE_KEY, TAIL_TEXTURE_PATH);
   }
 
   /**
