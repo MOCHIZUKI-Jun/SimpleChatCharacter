@@ -28,7 +28,13 @@ export class SummaryScene extends Phaser.Scene {
   // 表示フラグ
   private isShow = false;
 
-  private sampleImage?: Phaser.GameObjects.Image;
+  private hairMesh?: Phaser.GameObjects.Mesh;
+
+  private meshBaseVertices: Phaser.Math.Vector3[] = [];
+
+  private readonly meshColumns = 1;
+
+  private readonly meshRows = 5;
 
   private readonly disposables: SimpleDisposableInterface[] = [];
 
@@ -65,7 +71,7 @@ export class SummaryScene extends Phaser.Scene {
 
     // 背景
     new BackgroundView(this, BACKGROUND_COLOR);
-    this.showSampleImage();
+    this.showSampleMesh();
     // テキストラベル
     this.textLabel = new TextLabel(this, LABEL_TEXT_COLOR, 1, LABEL_TEXT_SIZE);
     this.textLabel.setPosition(canvas.width/2, canvas.height * 0.95);
@@ -84,21 +90,72 @@ export class SummaryScene extends Phaser.Scene {
    * フレーム更新
    */
   update() {
-    if (!this.isShow) return;
+    if (!this.isShow || !this.hairMesh) return;
+
+    // ChatGPT: 頂点を時間経過で揺らす
+    const time = this.time.now;
+    const waveSpeed = 0.0025;
+    const amplitude = 16;
+    const verticesPerRow = this.meshColumns + 1;
+
+    this.hairMesh.vertices.forEach((vertex, index) => {
+      const base = this.meshBaseVertices[index];
+      const rowIndex = Math.floor(index / verticesPerRow);
+      const progress = rowIndex / this.meshRows;
+      const sway = Math.sin(time * waveSpeed + rowIndex * 0.7) * amplitude * progress;
+      const lift = Math.cos(time * waveSpeed * 0.8 + rowIndex * 0.4) * 3 * (1 - progress);
+
+      vertex.x = base.x + sway;
+      vertex.y = base.y + lift;
+    });
   }
 
   /**
-   * ChatGPT: サンプル画像を中央に表示する
+   * ChatGPT: サンプル画像に髪の毛風のメッシュを適用する
    */
-  private showSampleImage() {
-    // ChatGPT: カメラの中心座標を取得して中央配置する
+  private showSampleMesh() {
+    // ChatGPT: 1列x5行のメッシュを生成して配置する
     const {centerX, centerY} = this.cameras.main;
-    this.sampleImage = this.add.image(centerX, centerY, SAMPLE_IMAGE_KEY);
-    this.sampleImage.setDepth(DefineDepth.UI - 1);
-    this.sampleImage.setOrigin(0.5, 0.5);
+    const meshWidth = 300;
+    const meshHeight = 300;
+    const vertices: number[] = [];
+    const uvs: number[] = [];
+    const indices: number[] = [];
 
-    // ChatGPT: 固定サイズで300x300ピクセルに設定する
-    this.sampleImage.setDisplaySize(300, 300);
+    this.meshBaseVertices = [];
+
+    for (let row = 0; row <= this.meshRows; row++) {
+      const v = row / this.meshRows;
+      const y = Phaser.Math.Linear(-meshHeight / 2, meshHeight / 2, v);
+
+      for (let col = 0; col <= this.meshColumns; col++) {
+        const u = col / this.meshColumns;
+        const x = Phaser.Math.Linear(-meshWidth / 2, meshWidth / 2, u);
+
+        vertices.push(x, y);
+        uvs.push(u, v);
+        this.meshBaseVertices.push(new Phaser.Math.Vector3(x, y, 0));
+      }
+    }
+
+    for (let row = 0; row < this.meshRows; row++) {
+      for (let col = 0; col < this.meshColumns; col++) {
+        const topLeft = row * (this.meshColumns + 1) + col;
+        const topRight = topLeft + 1;
+        const bottomLeft = (row + 1) * (this.meshColumns + 1) + col;
+        const bottomRight = bottomLeft + 1;
+
+        indices.push(topLeft, bottomLeft, topRight);
+        indices.push(topRight, bottomLeft, bottomRight);
+      }
+    }
+
+    this.hairMesh = this.add.mesh(centerX, centerY, SAMPLE_IMAGE_KEY);
+    this.hairMesh.setDepth(DefineDepth.UI - 1);
+    this.hairMesh.hideCCW = false;
+    this.hairMesh.addVertices(vertices, uvs, indices);
+    this.hairMesh.setOrtho(meshWidth, meshHeight);
+    this.isShow = true;
   }
 }
 new Phaser.Game(createConfig([SummaryScene]));
