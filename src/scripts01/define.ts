@@ -29,3 +29,6 @@ export const LABEL_TEXT_COLOR = GetColorCodeTextByRGB(180, 180, 180);
 export const LABEL_TEXT_SIZE = 30;
 // ChatGPT: サンプル画像パス（base パスに対応）
 export const SAMPLE_IMAGE_PATH = `${import.meta.env.BASE_URL}textures/textures01/sample.png`;
+// ChatGPT: 顔テクスチャとシートパス
+export const FACE_ATLAS_PATH = `${import.meta.env.BASE_URL}textures/textures01/image_face03.png`;
+export const FACE_SHEET_PATH = `${import.meta.env.BASE_URL}jsons/jsons00/sheet00-01.json`;
