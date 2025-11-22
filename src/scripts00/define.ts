@@ -19,6 +19,10 @@ export const FACE_ATLAS_JSON_PATH = `${import.meta.env.BASE_URL}jsons/jsons00/sh
 export const BODY_TEXTURE_KEY = 'image-body00';
 export const BODY_TEXTURE_PATH = `${import.meta.env.BASE_URL}textures/textures00/image_body00.webp`;
 
+// 口テクスチャ
+export const MOUTH_TEXTURE_KEY = 'image-mouth00';
+export const MOUTH_TEXTURE_PATH = `${import.meta.env.BASE_URL}textures/textures00/image_face00_mouth.png`;
+
 /**
  * 顔アトラスのフレーム名
  */
@@ -27,6 +31,20 @@ export const FACE_ATLAS_PART = {
   FACE_BASE: "face_base",
   // 後ろ髪
   HAIR_BACK: "hair_back",
+  // 前髪
+  HAIR_FRONT: "hair_front",
+  // 右目開
+  EYE_RIGHT_OPEN: "eye_right_open",
+  // 右目閉
+  EYE_RIGHT_CLOSED: "eye_right_closed",
+  // 左目開
+  EYE_LEFT_OPEN: "eye_left_open",
+  // 左目閉
+  EYE_LEFT_CLOSED: "eye_left_closed",
+  // 右眉
+  EYEBROW_RIGHT: "eyebrow_right",
+  // 左眉
+  EYEBROW_LEFT: "eyebrow_left",
 }
 
 /**
