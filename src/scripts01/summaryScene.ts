@@ -30,7 +30,11 @@ export class SummaryScene extends Phaser.Scene {
 
   private hairMesh?: Phaser.GameObjects.Mesh;
 
+  // ChatGPT: 論理頂点の基準座標
   private meshBaseVertices: Phaser.Math.Vector3[] = [];
+
+  // ChatGPT: 実頂点から論理頂点への対応インデックス
+  private meshVertexLogicalIndices: number[] = [];
 
   private readonly meshColumns = 1;
 
@@ -99,8 +103,11 @@ export class SummaryScene extends Phaser.Scene {
     const verticesPerRow = this.meshColumns + 1;
 
     this.hairMesh.vertices.forEach((vertex, index) => {
-      const base = this.meshBaseVertices[index];
-      const rowIndex = Math.floor(index / verticesPerRow);
+      const logicalIndex = this.meshVertexLogicalIndices[index];
+      const base = this.meshBaseVertices[logicalIndex];
+      if (!base) return;
+
+      const rowIndex = Math.floor(logicalIndex / verticesPerRow);
       const progress = rowIndex / this.meshRows;
       const sway = Math.sin(time * waveSpeed + rowIndex * 0.7) * amplitude * progress;
       const lift = Math.cos(time * waveSpeed * 0.8 + rowIndex * 0.4) * 3 * (1 - progress);
@@ -121,6 +128,7 @@ export class SummaryScene extends Phaser.Scene {
     const vertices: number[] = [];
     const uvs: number[] = [];
     const indices: number[] = [];
+    const logicalVertices: Phaser.Math.Vector3[] = [];
 
     for (let row = 0; row <= this.meshRows; row++) {
       const v = row / this.meshRows;
@@ -132,6 +140,7 @@ export class SummaryScene extends Phaser.Scene {
 
         vertices.push(x, y);
         uvs.push(u, v);
+        logicalVertices.push(new Phaser.Math.Vector3(x, y, 0));
       }
     }
 
@@ -152,10 +161,9 @@ export class SummaryScene extends Phaser.Scene {
     this.hairMesh.hideCCW = false;
     this.hairMesh.addVertices(vertices, uvs, indices);
     this.hairMesh.setOrtho(meshWidth, meshHeight);
-    // GPT-5.1-Codex-Max: 実際の頂点配列から基準座標を取得し、更新処理での参照ずれを防ぐ
-    this.meshBaseVertices = this.hairMesh.vertices.map(
-      vertex => new Phaser.Math.Vector3(vertex.x, vertex.y, vertex.z)
-    );
+    // GPT-5.1-Codex-Max: 論理頂点の基準座標と対応インデックスを保持する
+    this.meshBaseVertices = logicalVertices;
+    this.meshVertexLogicalIndices = indices.slice();
     this.isShow = true;
   }
 }
