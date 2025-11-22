@@ -78,9 +78,8 @@ export class SummaryScene extends Phaser.Scene {
 
     // ChatGPT: サンプル画像を標準ロードで読み込む
     this.load.image(SAMPLE_IMAGE_KEY, SAMPLE_IMAGE_PATH);
-    // ChatGPT: 顔テクスチャと座標シートをロード
-    this.load.image(FACE_ATLAS_KEY, FACE_ATLAS_PATH);
-    this.load.json(FACE_SHEET_KEY, FACE_SHEET_PATH);
+    // ChatGPT: 顔テクスチャアトラスをロード（画像とJSONを一緒に）
+    this.load.atlas(FACE_ATLAS_KEY, FACE_ATLAS_PATH, FACE_SHEET_PATH);
   }
 
   /**
