@@ -17,11 +17,8 @@ import {LABEL_TEXT_COLOR} from "../scripts00/define.ts";
 
 const SAMPLE_IMAGE_KEY = 'sample-image';
 const FACE_ATLAS_KEY = 'image-face03';
-const FACE_SHEET_KEY = 'sheet00-01';
 
 type Vertex = Phaser.Geom.Mesh.Vertex;
-type SheetFrame = { filename: string; frame: { x: number; y: number; w: number; h: number } };
-type SheetData = { frames: SheetFrame[] };
 
 /**
  * SummaryScene
