@@ -18,8 +18,6 @@ import {LABEL_TEXT_COLOR} from "../scripts00/define.ts";
 const SAMPLE_IMAGE_KEY = 'sample-image';
 const FACE_ATLAS_KEY = 'image-face03';
 
-type Vertex = Phaser.Geom.Mesh.Vertex;
-
 /**
  * SummaryScene
  */
@@ -39,14 +37,6 @@ export class SummaryScene extends Phaser.Scene {
 
   // ChatGPT: 髪の毛メッシュ
   private hairMesh?: Phaser.GameObjects.Mesh;
-  // ChatGPT: 論理頂点の基準座標
-  //private meshBaseVertices: Phaser.Math.Vector3[] = [];
-  // ChatGPT: 実頂点から論理頂点への対応インデックス
-  //private meshVertexLogicalIndices: number[] = [];
-  private vertices!: Vertex[];
-  private baseVerts!: { x: number; y: number }[];
-  private rootToTip!: number[]; // 0.0 = 根本, 1.0 = 先端
-
   private character!: Phaser.GameObjects.Container;
   private prevCharX = 0;
   private timeSec = 0;
@@ -173,36 +163,59 @@ export class SummaryScene extends Phaser.Scene {
     this.updateHairVertices(this.timeSec, swayStrength);
   }
 
-  /**
-   * 髪メッシュの頂点をスクリプトのみで揺らす処理
-   */
+  /** GPT-5.1-Codex-Max: 髪メッシュの頂点を角度ベースで揺らす処理 */
   private updateHairVertices(timeSec: number, swayStrength: number) {
-    const verts = this.vertices;
-    const base = this.baseVerts;
-    const weights = this.rootToTip;
+    if (!this.hairMesh) return;
 
-    // シンプルに sinusoidal な揺れ
-    // x方向オフセット = sin(時間 + 高さ依存) * 強度 * rootToTip
-    for (let i = 0; i < verts.length; i++) {
-      const v = verts[i];
-      const b = base[i];
-      const w = weights[i];
+    const baseAngle = 0; // GPT-5.1-Codex-Max: 下方向を基準とする
+    const swayOffset = Phaser.Math.Clamp(swayStrength * 0.03, -0.6, 0.6);
+    const waveOffset = Math.sin(timeSec * 3.0) * 0.1;
+    const angle = baseAngle + swayOffset + waveOffset;
 
-      // まず原型に戻す
-      v.x = b.x;
-      v.y = b.y;
+    const headX = 0;
+    const headY = -this.sampleImageSize.height / 2;
+    const segmentCount = this.meshRows;
+    const hairLength = this.sampleImageSize.height;
+    const halfWidth = this.sampleImageSize.width / 2;
 
-      // 先端ほどよく揺れるように
-      const sway =
-        Math.sin(timeSec * 4.0 + b.y * 0.15) *
-        swayStrength *
-        w;
+    this.updateHairMeshFromAngle(
+      this.hairMesh,
+      headX,
+      headY,
+      angle,
+      segmentCount,
+      hairLength,
+      halfWidth
+    );
+  }
 
-      v.x += sway;
+  /** GPT-5.1-Codex-Max: 角度と長さからメッシュ頂点を再配置する */
+  private updateHairMeshFromAngle(
+    mesh: Phaser.GameObjects.Mesh,
+    headX: number,
+    headY: number,
+    angle: number,
+    segmentCount: number,
+    hairLength: number,
+    halfWidth: number
+  ) {
+    for (let i = 0; i <= segmentCount; i++) {
+      const t = i / segmentCount;
+      const r = hairLength * t;
+
+      const cx = headX + Math.cos(angle) * 0 + Math.sin(angle) * r;
+      const cy = headY + Math.sin(angle) * 0 + Math.cos(angle) * r;
+
+      const topIndex = i * 2;
+
+      const leftX = cx - Math.cos(angle) * halfWidth;
+      const leftY = cy + Math.sin(angle) * halfWidth;
+      const rightX = cx + Math.cos(angle) * halfWidth;
+      const rightY = cy - Math.sin(angle) * halfWidth;
+
+      mesh.setVertexPosition(topIndex, leftX, leftY);
+      mesh.setVertexPosition(topIndex + 1, rightX, rightY);
     }
-
-    // ignoreDirtyCache = true にしてあるので、
-    // 頂点更新後に特別なフラグ更新は不要（毎フレーム再計算される想定） [oai_citation:9‡rexrainbow.github.io](https://rexrainbow.github.io/phaser3-rex-notes/docs/site/mesh/)
   }
 
   // Removed prepareFaceTextureFrames: manual frame registration is unnecessary when using load.atlas.
@@ -240,13 +253,6 @@ export class SummaryScene extends Phaser.Scene {
     mesh.setDisplaySize(this.sampleImageSize.width, this.sampleImageSize.height);
     this.hairMesh = mesh;
 
-    // 頂点配列取得
-    this.vertices = this.hairMesh.vertices;
-    // 初期位置を保存（原型保持用）
-    this.baseVerts = this.vertices.map(v => ({ x: v.x, y: v.y }));
-    // rootToTip（先端ほど1.0になる重み）を準備
-    this.rootToTip = this.computeRootToTipWeights();
-
     // 頂点更新を毎フレームやるので DirtyCache は無視させる [oai_citation:8‡rexrainbow.github.io](https://rexrainbow.github.io/phaser3-rex-notes/docs/site/mesh/)
     this.hairMesh.ignoreDirtyCache = true;
     
@@ -255,26 +261,6 @@ export class SummaryScene extends Phaser.Scene {
     this.hairMesh.setPosition(0,0);
     this.character.add(this.hairMesh);
   }
-
-  /**
-   * 頂点の y の位置から「根本〜先端」の重みを計算する
-   * 今回は単純に y の最小/最大で正規化して 0〜1 にしている
-   */
-  private computeRootToTipWeights(): number[] {
-    let minY = Number.POSITIVE_INFINITY;
-    let maxY = Number.NEGATIVE_INFINITY;
-
-    for (const v of this.vertices) {
-      if (v.y < minY) minY = v.y;
-      if (v.y > maxY) maxY = v.y;
-    }
-
-    const range = Math.max(maxY - minY, 0.0001);
-    return this.vertices.map(v => {
-      return (v.y - minY) / range; // 下＝0, 上＝1 の想定
-    });
-  }
-  
 
   /**
    * ChatGPT: サンプル画像に髪の毛風のメッシュを適用する
