@@ -213,8 +213,16 @@ export class SummaryScene extends Phaser.Scene {
       const rightX = cx + Math.cos(angle) * halfWidth;
       const rightY = cy - Math.sin(angle) * halfWidth;
 
-      mesh.setVertexPosition(topIndex, leftX, leftY);
-      mesh.setVertexPosition(topIndex + 1, rightX, rightY);
+      // GPT-5.1-Codex-Max: setVertexPositionは存在しないため直接頂点を更新する
+      const leftVertex = mesh.vertices[topIndex];
+      const rightVertex = mesh.vertices[topIndex + 1];
+
+      if (leftVertex && rightVertex) {
+        leftVertex.x = leftX;
+        leftVertex.y = leftY;
+        rightVertex.x = rightX;
+        rightVertex.y = rightY;
+      }
     }
   }
 
