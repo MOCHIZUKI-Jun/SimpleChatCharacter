@@ -42,6 +42,10 @@ export class SummaryScene extends Phaser.Scene {
   private timeSec = 0;
 
   private faceImage?: Phaser.GameObjects.Image;
+
+  private meshBaseVertices: Phaser.Math.Vector3[] = [];
+  private meshTopY = 0;
+  private meshHeight = 1;
   
 
   private readonly meshColumns = 1;
@@ -152,78 +156,56 @@ export class SummaryScene extends Phaser.Scene {
     //const speed = this.character.getData('speed') as number;
     this.character.x = this.game.canvas.width/2 + Math.sin(this.timeSec * 0.8) * 120;
 
-    // 速度から揺れ強度を計算
+    // 速度から角度を計算（-30〜30度をラジアン化）
     const vx = (this.character.x - this.prevCharX) / dt;
     this.prevCharX = this.character.x;
 
-    // 絶対速度からざっくり強度に変換
-    const swayStrength = Phaser.Math.Clamp(Math.abs(vx) * 0.02, 0, 20);
+    const angleDeg = Phaser.Math.Clamp(vx * 0.35, -30, 30);
+    const angleRad = Phaser.Math.DegToRad(angleDeg);
 
     // 髪メッシュの頂点を変形
-    this.updateHairVertices(this.timeSec, swayStrength);
+    this.updateHairVertices(angleRad);
   }
 
   /** GPT-5.1-Codex-Max: 髪メッシュの頂点を角度ベースで揺らす処理 */
-  private updateHairVertices(timeSec: number, swayStrength: number) {
+  private updateHairVertices(baseAngleRad: number) {
     if (!this.hairMesh) return;
+    if (!this.meshBaseVertices.length) return;
 
-    const baseAngle = 0; // GPT-5.1-Codex-Max: 下方向を基準とする
-    const swayOffset = Phaser.Math.Clamp(swayStrength * 0.03, -0.6, 0.6);
-    const waveOffset = Math.sin(timeSec * 3.0) * 0.1;
-    const angle = baseAngle + swayOffset + waveOffset;
-
-    const headX = 0;
-    const headY = -this.sampleImageSize.height / 2;
-    const segmentCount = this.meshRows;
-    const hairLength = this.sampleImageSize.height;
-    const halfWidth = this.sampleImageSize.width / 2;
+    const waveOffset = Phaser.Math.DegToRad(Math.sin(this.timeSec * 3.0) * 5);
+    const maxAngleRad = Phaser.Math.DegToRad(30);
+    const finalAngle = Phaser.Math.Clamp(baseAngleRad + waveOffset, -maxAngleRad, maxAngleRad);
 
     this.updateHairMeshFromAngle(
       this.hairMesh,
-      headX,
-      headY,
-      angle,
-      segmentCount,
-      hairLength,
-      halfWidth
+      finalAngle
     );
   }
 
-  /** GPT-5.1-Codex-Max: 角度と長さからメッシュ頂点を再配置する */
+  /** GPT-5.1-Codex-Max: 角度に応じて保持しておいた基準頂点を回転させる */
   private updateHairMeshFromAngle(
     mesh: Phaser.GameObjects.Mesh,
-    headX: number,
-    headY: number,
-    angle: number,
-    segmentCount: number,
-    hairLength: number,
-    halfWidth: number
+    angleRad: number
   ) {
-    for (let i = 0; i <= segmentCount; i++) {
-      const t = i / segmentCount;
-      const r = hairLength * t;
+    const pivotX = 0;
+    const pivotY = this.meshTopY;
 
-      const cx = headX + Math.cos(angle) * 0 + Math.sin(angle) * r;
-      const cy = headY + Math.sin(angle) * 0 + Math.cos(angle) * r;
+    mesh.vertices.forEach((vertex, index) => {
+      const base = this.meshBaseVertices[index];
+      if (!base) return;
 
-      const topIndex = i * 2;
+      const heightRate = Phaser.Math.Clamp((base.y - this.meshTopY) / this.meshHeight, 0, 1);
+      const appliedAngle = angleRad * heightRate;
+      const rotated = Phaser.Math.RotateAround(
+        new Phaser.Math.Vector2(base.x, base.y),
+        pivotX,
+        pivotY,
+        appliedAngle
+      );
 
-      const leftX = cx - Math.cos(angle) * halfWidth;
-      const leftY = cy + Math.sin(angle) * halfWidth;
-      const rightX = cx + Math.cos(angle) * halfWidth;
-      const rightY = cy - Math.sin(angle) * halfWidth;
-
-      // GPT-5.1-Codex-Max: setVertexPositionは存在しないため直接頂点を更新する
-      const leftVertex = mesh.vertices[topIndex];
-      const rightVertex = mesh.vertices[topIndex + 1];
-
-      if (leftVertex && rightVertex) {
-        leftVertex.x = leftX;
-        leftVertex.y = leftY;
-        rightVertex.x = rightX;
-        rightVertex.y = rightY;
-      }
-    }
+      vertex.x = rotated.x;
+      vertex.y = rotated.y;
+    });
   }
 
   // Removed prepareFaceTextureFrames: manual frame registration is unnecessary when using load.atlas.
@@ -259,15 +241,27 @@ export class SummaryScene extends Phaser.Scene {
     mesh.setOrtho(aspectRatioScreen, 1);
     mesh.setDepth(DefineDepth.UI - 1);
     mesh.setDisplaySize(this.sampleImageSize.width, this.sampleImageSize.height);
+    this.captureHairMeshBase(mesh);
     this.hairMesh = mesh;
 
     // 頂点更新を毎フレームやるので DirtyCache は無視させる [oai_citation:8‡rexrainbow.github.io](https://rexrainbow.github.io/phaser3-rex-notes/docs/site/mesh/)
     this.hairMesh.ignoreDirtyCache = true;
-    
+
     // デモ用キャラコンテナにぶら下げる
     this.character = this.add.container(this.sampleImagePosition.x, this.sampleImagePosition.y);
     this.hairMesh.setPosition(0,0);
     this.character.add(this.hairMesh);
+    this.prevCharX = this.character.x;
+  }
+
+  /** GPT-5.1-Codex-Max: メッシュ生成直後の頂点情報を保持する */
+  private captureHairMeshBase(mesh: Phaser.GameObjects.Mesh) {
+    this.meshBaseVertices = mesh.vertices.map(vertex => vertex.clone());
+
+    const ys = this.meshBaseVertices.map(v => v.y);
+    this.meshTopY = Math.min(...ys);
+    const bottomY = Math.max(...ys);
+    this.meshHeight = Math.max(bottomY - this.meshTopY, 1);
   }
 
   /**
