@@ -19,28 +19,6 @@ import {getWorldPos} from "../utility/transformUtility.ts";
 const SAMPLE_IMAGE_KEY = 'sample-image';
 const FACE_ATLAS_KEY = 'image-face03';
 
-/*
-const createUniqueSortedVertices = (vertices: Vertex[]) => {
-  const seen = {};
-  // we need to remove verticies with the same coordinates to make sure we map the bodies in the cloth correctly (and don't pick the "same" vertex)
-  const tmp = [...vertices].filter((item)=> {
-    if(seen.hasOwnProperty(item.u + '-' + item.v)) return false;
-    seen[item.u + '-' + item.v] = true;
-    return true;
-  });
-
-  // sort based on UV map. UV coordinate 0,0 first, and 1,1 last
-  tmp.sort((a, b) => {
-    if (a.v < b.v) return -1;
-    if (a.v > b.v) return 1;
-    if (a.u < b.u) return -1;
-    if (a.u > b.u) return 1;
-    return 0;
-  });
-  return tmp;
-}
-*/
-
 /**
  * 頂点を簡単に移動させるためにまとめた単位
  */
@@ -189,19 +167,20 @@ export class HairStrip extends Phaser.GameObjects.Container {
     
     for (let i = 0; i < this.logicalVertsUnits.length; i++) {
       const diffX = worldPosition.x - this.prevWorldPos.x;
-      const movePosX = diffX /* * (i / this.logicalVertsUnits.length) * 2 */; // 徐々に大きく動かす
+      const movePosX = -diffX  * (i / this.logicalVertsUnits.length) * 2 * 0.1; // 徐々に大きく動かす
       
       const unit = this.logicalVertsUnits[i];
-      //const targetX = unit.unitPos.x + movePosX * 0.1;
+      const targetX = unit.unitPos.x + movePosX;
       
-      const targetX = worldPosition.x * 0.0002 * (i); // 徐々に大きく動かす
       
       // 左右の頂点を移動
       for (const v of unit.leftVerts) {
-        v.x = unit.initUnitPos.x + unit.initDiffLeft.x + targetX;
+        //v.x = unit.initUnitPos.x + unit.initDiffLeft.x + targetX;
+        v.x = Phaser.Math.Linear(v.x, unit.initUnitPos.x + unit.initDiffLeft.x + targetX, 0.2);
       }
       for (const v of unit.rightVerts) {
-        v.x = unit.initUnitPos.x + unit.initDiffRight.x + targetX;
+        //v.x = unit.initUnitPos.x + unit.initDiffRight.x + targetX;
+        v.x = Phaser.Math.Linear(v.x, unit.initUnitPos.x + unit.initDiffRight.x + targetX, 0.2);
       }
     }
     
@@ -211,8 +190,6 @@ export class HairStrip extends Phaser.GameObjects.Container {
 
     this.debug.clear();
     this.debug.lineStyle(1, 0x00ff00);
-    
-    //this.mesh.
   }
 }
 
