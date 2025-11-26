@@ -3,7 +3,7 @@ import {
   BODY_TEXTURE_KEY,
   DefineDepth,
   FACE_ATLAS_KEY,
-  FACE_ATLAS_PART,
+  FACE_ATLAS_PART, HAIR_SIDE_L_TEXTURE_KEY, HAIR_SIDE_R_TEXTURE_KEY,
   MOUTH_TEXTURE_KEY,
   TAIL_TEXTURE_KEY
 } from "./define.ts";
@@ -51,6 +51,14 @@ export class CharacterView extends Phaser.GameObjects.Container {
   private hornLeftContainer!: Container
   // 左角のイメージ
   private hornLeftImage!: Image
+  // 右横髪のコンテナ
+  private hairSideRContainer!: Container;
+  // 右横髪のイメージ
+  private hairSideRImage!: Image
+  // 左横髪のコンテナ
+  private hairSideLContainer!: Container
+  // 左横髪のイメージ
+  private hairSideLImage!: Image
   // 前髪のイメージ
   private hairFrontImage!: Image;
   // 王冠のイメージ
@@ -106,7 +114,8 @@ export class CharacterView extends Phaser.GameObjects.Container {
     const hairBackScale = 0.8;
     const faceScale = 0.8;
     const hornScale = 0.8;
-    const hairFrontScale = 0.8;
+    const hairSideScale = 0.8;
+    const hairFrontScale = 0.82;
     const crownScale = 0.7;
     const eyeScale = 0.66;
     const mouthScale = 0.6;
@@ -164,8 +173,23 @@ export class CharacterView extends Phaser.GameObjects.Container {
     this.hornLeftImage.setScale(hornScale);
     this.hornLeftContainer.add(this.hornLeftImage);
     
+    // 右横髪コンテナ
+    this.hairSideRContainer = this.createContainer(125, -80);
+    this.headFrontContainer.add(this.hairSideRContainer);
+    // 右横髪イメージ
+    this.hairSideRImage = this.scene.add.image(20, 100, HAIR_SIDE_R_TEXTURE_KEY);
+    this.hairSideRImage.setScale(hairSideScale);
+    this.hairSideRContainer.add(this.hairSideRImage);
+    // 左横髪コンテナ
+    this.hairSideLContainer = this.createContainer(-135, -80);
+    this.headFrontContainer.add(this.hairSideLContainer);
+    // 左横髪イメージ
+    this.hairSideLImage = this.scene.add.image(-20, 100, HAIR_SIDE_L_TEXTURE_KEY);
+    this.hairSideLImage.setScale(hairSideScale);
+    this.hairSideLContainer.add(this.hairSideLImage);
+    
     // 前髪イメージ
-    this.hairFrontImage = this.scene.add.image(0, -146, FACE_ATLAS_KEY, FACE_ATLAS_PART.HAIR_FRONT);
+    this.hairFrontImage = this.scene.add.image(0, -148, FACE_ATLAS_KEY, FACE_ATLAS_PART.HAIR_FRONT);
     this.hairFrontImage.setScale(hairFrontScale);
     this.headFrontContainer.add(this.hairFrontImage);
     

@@ -2,11 +2,23 @@ import Phaser from 'phaser';
 import {createConfig} from "../define.ts";
 import {AssetLoader} from "../utility/assetLoader.ts";
 import {
-  BACKGROUND_COLOR, BODY_TEXTURE_KEY, BODY_TEXTURE_PATH,
-  DefineDepth, FACE_ATLAS_JSON_PATH,
-  FACE_ATLAS_KEY, FACE_ATLAS_PATH,
+  BACKGROUND_COLOR,
+  BODY_TEXTURE_KEY,
+  BODY_TEXTURE_PATH,
+  DefineDepth,
+  FACE_ATLAS_JSON_PATH,
+  FACE_ATLAS_KEY,
+  FACE_ATLAS_PATH,
+  HAIR_SIDE_L_TEXTURE_KEY,
+  HAIR_SIDE_L_TEXTURE_PATH,
+  HAIR_SIDE_R_TEXTURE_KEY,
+  HAIR_SIDE_R_TEXTURE_PATH,
   LABEL_TEXT_COLOR,
-  LABEL_TEXT_SIZE, MOUTH_TEXTURE_KEY, MOUTH_TEXTURE_PATH, TAIL_TEXTURE_KEY, TAIL_TEXTURE_PATH,
+  LABEL_TEXT_SIZE,
+  MOUTH_TEXTURE_KEY,
+  MOUTH_TEXTURE_PATH,
+  TAIL_TEXTURE_KEY,
+  TAIL_TEXTURE_PATH,
   TITLE,
 } from "./define.ts";
 import {BackgroundView} from "../commonViews/backgroundView.ts";
@@ -49,6 +61,8 @@ export class SummaryScene extends Phaser.Scene {
     console.log('SummaryScene preload');
 
     this.load.atlas(FACE_ATLAS_KEY, FACE_ATLAS_PATH, FACE_ATLAS_JSON_PATH);
+    this.load.image(HAIR_SIDE_L_TEXTURE_KEY, HAIR_SIDE_L_TEXTURE_PATH);
+    this.load.image(HAIR_SIDE_R_TEXTURE_KEY, HAIR_SIDE_R_TEXTURE_PATH);
     this.load.image(BODY_TEXTURE_KEY, BODY_TEXTURE_PATH);
     this.load.image(MOUTH_TEXTURE_KEY, MOUTH_TEXTURE_PATH);
     this.load.image(TAIL_TEXTURE_KEY, TAIL_TEXTURE_PATH);

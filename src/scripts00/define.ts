@@ -15,6 +15,12 @@ export const FACE_ATLAS_KEY = 'image-face00';
 export const FACE_ATLAS_PATH = `${import.meta.env.BASE_URL}textures/textures00/image_face00.webp`;
 export const FACE_ATLAS_JSON_PATH = `${import.meta.env.BASE_URL}jsons/jsons00/sheet00-01.json`;
 
+// 横髪テクスチャ
+export const HAIR_SIDE_L_TEXTURE_KEY = 'image-hair-sideL00';
+export const HAIR_SIDE_L_TEXTURE_PATH = `${import.meta.env.BASE_URL}textures/textures00/image_face00_sidehairL.webp`;
+export const HAIR_SIDE_R_TEXTURE_KEY = 'image-hair-sideR00';
+export const HAIR_SIDE_R_TEXTURE_PATH = `${import.meta.env.BASE_URL}textures/textures00/image_face00_sidehairR.webp`;
+
 // 体テクスチャ
 export const BODY_TEXTURE_KEY = 'image-body00';
 export const BODY_TEXTURE_PATH = `${import.meta.env.BASE_URL}textures/textures00/image_body00.webp`;
