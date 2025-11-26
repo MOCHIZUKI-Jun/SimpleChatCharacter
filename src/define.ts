@@ -46,10 +46,10 @@ export const createConfig = (scenes: Phaser.Types.Scenes.SceneType[]) => {
     },
     scene: scenes,
     physics: {
-      default: 'arcade',
-      arcade: {
-        gravity: { x:0, y: 0 }
-      }
-    }
+      default: 'matter',
+      matter: {
+        debug: true,
+      },
+    },
   }
 }

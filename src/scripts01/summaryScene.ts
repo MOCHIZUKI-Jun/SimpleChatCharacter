@@ -14,9 +14,207 @@ import {FpsView} from "../commonViews/fpsView.ts";
 import {SimpleDisposableInterface} from "../utility/simpleDisposableInterface.ts";
 import {TextLabel} from "../commonViews/textLabel.ts";
 import {LABEL_TEXT_COLOR} from "../scripts00/define.ts";
+import {getWorldPos} from "../utility/transformUtility.ts";
 
 const SAMPLE_IMAGE_KEY = 'sample-image';
 const FACE_ATLAS_KEY = 'image-face03';
+
+/*
+const createUniqueSortedVertices = (vertices: Vertex[]) => {
+  const seen = {};
+  // we need to remove verticies with the same coordinates to make sure we map the bodies in the cloth correctly (and don't pick the "same" vertex)
+  const tmp = [...vertices].filter((item)=> {
+    if(seen.hasOwnProperty(item.u + '-' + item.v)) return false;
+    seen[item.u + '-' + item.v] = true;
+    return true;
+  });
+
+  // sort based on UV map. UV coordinate 0,0 first, and 1,1 last
+  tmp.sort((a, b) => {
+    if (a.v < b.v) return -1;
+    if (a.v > b.v) return 1;
+    if (a.u < b.u) return -1;
+    if (a.u > b.u) return 1;
+    return 0;
+  });
+  return tmp;
+}
+*/
+
+/**
+ * 頂点を簡単に移動させるためにまとめた単位
+ */
+type LogicalVertsUnit = {
+  unitPos: Phaser.Math.Vector2;
+  leftVerts: Phaser.Geom.Mesh.Vertex[];
+  rightVerts: Phaser.Geom.Mesh.Vertex[];
+  
+  initUnitPos: Phaser.Math.Vector2;
+  initDiffLeft: Phaser.Math.Vector2;
+  initDiffRight: Phaser.Math.Vector2;
+}
+
+export class HairStrip extends Phaser.GameObjects.Container {
+  
+  debug: Phaser.GameObjects.Graphics;
+  mesh: Phaser.GameObjects.Mesh;
+  
+  
+  // 頂点グループ(頂点インデックス順)
+  private vertexGroups: Phaser.Geom.Mesh.Vertex[][];
+  // ユニット
+  private logicalVertsUnits: LogicalVertsUnit[] = [];
+
+  constructor(
+    scene: Phaser.Scene,
+    textureKey: string,
+    rows: number, // 行数
+    cols: number, // 列数
+    width: number,  // 髪テクスチャの幅
+    height: number, // 髪テクスチャの高さ
+  ) {
+    super(scene, 0, 0);
+    this.mesh = scene.add.mesh(0, 0, textureKey);
+    this.add(this.mesh);
+
+    // 頂点をピクセルベースで作る
+    const result = Phaser.Geom.Mesh.GenerateGridVerts({
+      mesh: this.mesh,
+      texture: textureKey,
+      widthSegments: cols,
+      heightSegments: rows,
+      isOrtho: true
+    });
+    
+    console.log(result);
+
+    // setOrtho
+    this.mesh.hideCCW = false;
+    const aspectRatioScreen = scene.game.canvas.width / scene.game.canvas.height;
+    this.mesh.setOrtho(aspectRatioScreen, 1);
+    this.mesh.setDepth(DefineDepth.UI - 1);
+    this.mesh.setDisplaySize(width, height);
+
+    // 頂点更新を毎フレームやるので DirtyCache は無視させる [oai_citation:8‡rexrainbow.github.io](https://rexrainbow.github.io/phaser3-rex-notes/docs/site/mesh/)
+    this.mesh.ignoreDirtyCache = true;
+
+    this.debug = scene.add.graphics(); // create graphics that we can use for bugging
+    this.debug.setDepth(9999);
+    this.mesh.setDebug(this.debug);
+    
+    const vertsMapByPosition: {[key: string]: Phaser.Geom.Mesh.Vertex[]} = {};
+    
+    // 頂点グループを整理
+    for (const v of this.mesh.vertices) {
+      const key = `${v.x.toFixed(4)}_${v.y.toFixed(4)}`;
+      if (!vertsMapByPosition[key]) {
+        vertsMapByPosition[key] = [];
+      }
+      vertsMapByPosition[key].push(v);
+    }
+    
+    this.vertexGroups = Object.values(vertsMapByPosition);
+    
+    // uv順にソート
+    // sort based on UV map. UV coordinate 0,0 first, and 1,1 last
+    this.vertexGroups.sort((a, b) => {
+      const va = a[0];
+      const vb = b[0];
+      if (va.v < vb.v) return -1;
+      if (va.v > vb.v) return 1;
+      if (va.u < vb.u) return -1;
+      if (va.u > vb.u) return 1;
+      return 0;
+    });
+    
+    for (const vertGroup of this.vertexGroups) {
+      console.log('-------vertGroup', vertGroup);
+      for (const v of vertGroup) {
+        // 小数点4桁まで表示
+        const xStr = v.x.toFixed(4);
+        const yStr = v.y.toFixed(4);
+        console.log(`  vert x:${xStr} y:${yStr} u:${v.u.toFixed(4)} v:${v.v.toFixed(4)}`);
+      }
+    }
+    
+    for (let row = 0; row <= rows; row++) {
+      const leftIndex = row * (cols + 1);
+      const rightIndex = leftIndex + 1;
+      
+      const leftGroup = this.vertexGroups[leftIndex];
+      const rightGroup = this.vertexGroups[rightIndex];
+      
+      const unitPos = new Phaser.Math.Vector2(
+        (leftGroup[0].x + rightGroup[0].x) / 2,
+        leftGroup[0].y
+      );
+      
+      const initUnitPos = new Phaser.Math.Vector2();
+      initUnitPos.x = unitPos.x;
+      initUnitPos.y = unitPos.y;
+      
+      const initDiffLeft = new Phaser.Math.Vector2();
+      initDiffLeft.x = leftGroup[0].x - unitPos.x;
+      initDiffLeft.y = leftGroup[0].y - unitPos.y;
+      
+      const initDiffRight = new Phaser.Math.Vector2();
+      initDiffRight.x = rightGroup[0].x - unitPos.x;
+      initDiffRight.y = rightGroup[0].y - unitPos.y;
+      
+      const unit: LogicalVertsUnit = {
+        unitPos,
+        leftVerts: leftGroup,
+        rightVerts: rightGroup,
+        initUnitPos,
+        initDiffLeft,
+        initDiffRight,
+      }
+      
+      this.logicalVertsUnits.push(unit);
+      
+      // 行番号とunitをログに出す
+      console.log(`unit row:${row} unit:`, unit);
+    }
+  }
+
+  /**
+   * 毎フレーム呼ぶ
+   */
+  private prevWorldPos = new Phaser.Math.Vector2();
+  updateSampleMesh2() {
+    
+    const worldPosition = getWorldPos(this);
+    //console.log('worldPosition', worldPosition);
+    
+    
+    for (let i = 0; i < this.logicalVertsUnits.length; i++) {
+      const diffX = worldPosition.x - this.prevWorldPos.x;
+      const movePosX = diffX /* * (i / this.logicalVertsUnits.length) * 2 */; // 徐々に大きく動かす
+      
+      const unit = this.logicalVertsUnits[i];
+      //const targetX = unit.unitPos.x + movePosX * 0.1;
+      
+      const targetX = worldPosition.x * 0.0002 * (i); // 徐々に大きく動かす
+      
+      // 左右の頂点を移動
+      for (const v of unit.leftVerts) {
+        v.x = unit.initUnitPos.x + unit.initDiffLeft.x + targetX;
+      }
+      for (const v of unit.rightVerts) {
+        v.x = unit.initUnitPos.x + unit.initDiffRight.x + targetX;
+      }
+    }
+    
+    this.prevWorldPos.x = worldPosition.x;
+    this.prevWorldPos.y = worldPosition.y;
+
+
+    this.debug.clear();
+    this.debug.lineStyle(1, 0x00ff00);
+    
+    //this.mesh.
+  }
+}
 
 /**
  * SummaryScene
@@ -34,19 +232,17 @@ export class SummaryScene extends Phaser.Scene {
   
   private sampleImageSize = { width: 300, height: 300 };
   private sampleImagePosition = { x: 200, y: 200 };
-
-  // ChatGPT: 髪の毛メッシュ
-  private hairMesh?: Phaser.GameObjects.Mesh;
-  private character!: Phaser.GameObjects.Container;
-  private prevCharX = 0;
-  private timeSec = 0;
-
+  
+  // サンプルメッシュ
+  private hairStrip?: HairStrip;
+  private readonly sampleMeshRows = 5;
+  private readonly sampleMeshColumns = 1;
+  
+  // サンプルフェイスイメージ
   private faceImage?: Phaser.GameObjects.Image;
   
-
-  private readonly meshColumns = 1;
-  private readonly meshRows = 5;
-
+  private hairContainer?: Phaser.GameObjects.Container;
+  
   private readonly disposables: SimpleDisposableInterface[] = [];
 
   /**
@@ -85,8 +281,8 @@ export class SummaryScene extends Phaser.Scene {
     // 背景
     new BackgroundView(this, BACKGROUND_COLOR);
     this.showFaceBaseImage();
-    this.showSampleMesh2();
     this.showSampleImage();
+    this.showSampleMesh2();
     // テキストラベル
     this.textLabel = new TextLabel(this, LABEL_TEXT_COLOR, 1, LABEL_TEXT_SIZE);
     this.textLabel.setPosition(canvas.width/2, canvas.height * 0.95);
@@ -113,7 +309,8 @@ export class SummaryScene extends Phaser.Scene {
     if (!this.isShow) return;
     
     //this.updateSampleMesh1();
-    this.updateSampleMesh2(this.game.loop.delta);
+    this.hairStrip?.updateSampleMesh2();
+
   }
   
   /*
@@ -143,91 +340,39 @@ export class SummaryScene extends Phaser.Scene {
     });
   }
   */
-
-  private updateSampleMesh2(delta: number) {
-    const dt = delta / 1000;
-    this.timeSec += dt;
-
-    // デモ用：キャラを左右に自動移動
-    //const speed = this.character.getData('speed') as number;
-    this.character.x = this.game.canvas.width/2 + Math.sin(this.timeSec * 0.8) * 120;
-
-    // 速度から揺れ強度を計算
-    const vx = (this.character.x - this.prevCharX) / dt;
-    this.prevCharX = this.character.x;
-
-    // 絶対速度からざっくり強度に変換
-    const swayStrength = Phaser.Math.Clamp(Math.abs(vx) * 0.02, 0, 20);
-
-    // 髪メッシュの頂点を変形
-    this.updateHairVertices(this.timeSec, swayStrength);
-  }
-
-  /** GPT-5.1-Codex-Max: 髪メッシュの頂点を角度ベースで揺らす処理 */
-  private updateHairVertices(timeSec: number, swayStrength: number) {
-    if (!this.hairMesh) return;
-
-    const baseAngle = 0; // GPT-5.1-Codex-Max: 下方向を基準とする
-    const swayOffset = Phaser.Math.Clamp(swayStrength * 0.03, -0.6, 0.6);
-    const waveOffset = Math.sin(timeSec * 3.0) * 0.1;
-    const angle = baseAngle + swayOffset + waveOffset;
-
-    const headX = 0;
-    const headY = -this.sampleImageSize.height / 2;
-    const segmentCount = this.meshRows;
-    const hairLength = this.sampleImageSize.height;
-    const halfWidth = this.sampleImageSize.width / 2;
-
-    this.updateHairMeshFromAngle(
-      this.hairMesh,
-      headX,
-      headY,
-      angle,
-      segmentCount,
-      hairLength,
-      halfWidth
+  
+  private showSampleMesh2() {
+    const canvas = this.game.canvas;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    
+    this.hairContainer = this.add.container(centerX, centerY);
+    this.hairContainer.setDepth(DefineDepth.UI + 1);
+    const rect = this.add.rectangle(0, 0, this.sampleImageSize.width, this.sampleImageSize.height, 0xff0000, 0.2);
+    this.hairContainer.add(rect);
+    
+    this.hairStrip = new HairStrip(
+      this,
+      SAMPLE_IMAGE_KEY,
+      this.sampleMeshRows,
+      this.sampleMeshColumns,
+      this.sampleImageSize.width,
+      this.sampleImageSize.height,
     );
+    
+    this.hairContainer.add(this.hairStrip);
+    
+    // hairContainerを左右に移動(ループ)
+    this.tweens.add({
+      targets: this.hairContainer,
+      x: centerX + 100,
+      duration: 2000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
   }
-
-  /** GPT-5.1-Codex-Max: 角度と長さからメッシュ頂点を再配置する */
-  private updateHairMeshFromAngle(
-    mesh: Phaser.GameObjects.Mesh,
-    headX: number,
-    headY: number,
-    angle: number,
-    segmentCount: number,
-    hairLength: number,
-    halfWidth: number
-  ) {
-    for (let i = 0; i <= segmentCount; i++) {
-      const t = i / segmentCount;
-      const r = hairLength * t;
-
-      const cx = headX + Math.cos(angle) * 0 + Math.sin(angle) * r;
-      const cy = headY + Math.sin(angle) * 0 + Math.cos(angle) * r;
-
-      const topIndex = i * 2;
-
-      const leftX = cx - Math.cos(angle) * halfWidth;
-      const leftY = cy + Math.sin(angle) * halfWidth;
-      const rightX = cx + Math.cos(angle) * halfWidth;
-      const rightY = cy - Math.sin(angle) * halfWidth;
-
-      // GPT-5.1-Codex-Max: setVertexPositionは存在しないため直接頂点を更新する
-      const leftVertex = mesh.vertices[topIndex];
-      const rightVertex = mesh.vertices[topIndex + 1];
-
-      if (leftVertex && rightVertex) {
-        leftVertex.x = leftX;
-        leftVertex.y = leftY;
-        rightVertex.x = rightX;
-        rightVertex.y = rightY;
-      }
-    }
-  }
-
-  // Removed prepareFaceTextureFrames: manual frame registration is unnecessary when using load.atlas.
-
+  
   /** ChatGPT: face_baseフレームを画面中央に表示する */
   private showFaceBaseImage() {
     // No need to manually register frames; load.atlas handles this.
@@ -236,40 +381,7 @@ export class SummaryScene extends Phaser.Scene {
     this.faceImage.setDepth(DefineDepth.UI - 2);
     this.faceImage.setOrigin(0.5, 0.5);
   }
-
-  /**
-   * Mesh.GenerateGridVertsを使うパターン
-   */
-  private showSampleMesh2() {
-    const {centerX, centerY} = this.cameras.main;
-    const mesh = this.add.mesh(centerX, centerY, SAMPLE_IMAGE_KEY);
-
-    // 頂点をピクセルベースで作る
-    Phaser.Geom.Mesh.GenerateGridVerts({
-      mesh,
-      texture: SAMPLE_IMAGE_KEY,
-      widthSegments: this.meshColumns,
-      heightSegments: this.meshRows,
-      isOrtho: true
-    });
-
-    // setOrtho
-    mesh.hideCCW = false;
-    const aspectRatioScreen = this.game.canvas.width / this.game.canvas.height;
-    mesh.setOrtho(aspectRatioScreen, 1);
-    mesh.setDepth(DefineDepth.UI - 1);
-    mesh.setDisplaySize(this.sampleImageSize.width, this.sampleImageSize.height);
-    this.hairMesh = mesh;
-
-    // 頂点更新を毎フレームやるので DirtyCache は無視させる [oai_citation:8‡rexrainbow.github.io](https://rexrainbow.github.io/phaser3-rex-notes/docs/site/mesh/)
-    this.hairMesh.ignoreDirtyCache = true;
-    
-    // デモ用キャラコンテナにぶら下げる
-    this.character = this.add.container(this.sampleImagePosition.x, this.sampleImagePosition.y);
-    this.hairMesh.setPosition(0,0);
-    this.character.add(this.hairMesh);
-  }
-
+  
   /**
    * ChatGPT: サンプル画像に髪の毛風のメッシュを適用する
    * 自前で頂点追加するとピクセルサイズとずれるのて失敗パターン。
