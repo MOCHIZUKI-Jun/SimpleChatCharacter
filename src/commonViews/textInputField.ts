@@ -4,8 +4,10 @@ import {ReadonlyObservableInterface} from "../utility/simpleDisposableInterface.
 import {getWorldPos} from "../utility/transformUtility.ts";
 import {isVisibleWithParent} from "../utility/containerUtility.ts";
 import {isMobile} from "../define.ts";
+import {TextLabel} from "./textLabel.ts";
+import {GetColorCodeTextByRGB} from "../utility/colorUtility.ts";
 
-const DEBUG = false;
+const DEBUG = true;
 
 // スマホでの最小フォントサイズ
 const SAFETY_FONT_SIZE = 16.5;
@@ -15,13 +17,18 @@ const SAFETY_FONT_SIZE = 16.5;
  */
 export class TextInputField extends Phaser.GameObjects.Container {
   protected readonly _onTextUpdate: SimpleObservable = new SimpleObservable();
+  protected readonly _onTextFixed: SimpleObservable = new SimpleObservable();
   public onTextUpdate: ReadonlyObservableInterface = this._onTextUpdate;
+  public onTextFixed: ReadonlyObservableInterface = this._onTextFixed;
+  
   private inputElement!: HTMLInputElement;
   private isVisibleInHierarchy = true;
 
   private isFocused = false;
   private leftOnUnfocus = 0;
   private bottomDiffOnUnfocus = 0;
+  
+  private debugFixedTextLabel?: TextLabel;
   
   constructor(
     scene: Phaser.Scene,
@@ -37,10 +44,14 @@ export class TextInputField extends Phaser.GameObjects.Container {
     const height = Number.parseInt(styleFontSize.replace("px", ""));
     this.setSize(width, height);
     
-
-
-    console.log(this.width, this.height);
-    if (DEBUG) this.addDebugRect();
+    if (DEBUG) {
+      this.addDebugRect();
+      this.addDebugTextLabel();
+      
+      this._onTextFixed.subscribe((text: string) => {
+        this.debugFixedTextLabel?.setText(`確定: ${text}`);
+      });
+    }
 
     // HTML の `<input>` を作成
     this.inputElement = document.createElement("input");
@@ -67,9 +78,34 @@ export class TextInputField extends Phaser.GameObjects.Container {
 
     this.inputElement.oninput = () => {
       const txt = this.inputElement.value;
-      console.log("入力されたテキスト:", txt);
       this._onTextUpdate.on(txt);
     };
+
+    let prevValue = "";
+    this.inputElement.addEventListener('keydown', (e) => {
+      // エンターキーか
+      const isEnter = e.key === 'Enter';
+      if (!isEnter) return;
+      // 変換中か
+      const isComposing = e.isComposing;
+      if (isComposing) return;
+
+      // 直前から値が変わっていない ＝ 新しい文字が入力されていない
+      const txt = this.inputElement.value;
+      const isSameTextPrev = txt === prevValue;
+
+      // 確定
+      if (isSameTextPrev) {
+        e.preventDefault();
+        console.log("確定Enterされたテキスト:", txt);
+        this._onTextFixed.on(txt);
+        this.inputElement.blur();
+      }
+      // 値を更新
+      else {
+        prevValue = txt;
+      }
+    });
 
     // シーンが終了したら削除
     this.scene.events.on("shutdown", () => {
@@ -168,6 +204,17 @@ export class TextInputField extends Phaser.GameObjects.Container {
   private showField() {
     console.log("showField");
     this.inputElement.style.display = "block";
+  }
+  
+  private addDebugTextLabel() {
+    this.debugFixedTextLabel = new TextLabel(
+      this.scene,
+      GetColorCodeTextByRGB(255, 0,0),
+      1,
+      16
+    );
+    this.debugFixedTextLabel.setPosition(0, -this.height);
+    this.add(this.debugFixedTextLabel);
   }
 
   private addDebugRect() {
