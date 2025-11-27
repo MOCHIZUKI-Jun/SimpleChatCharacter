@@ -36,6 +36,8 @@ export const TAIL_TEXTURE_PATH = `${import.meta.env.BASE_URL}textures/textures00
 // 吹き出しテクスチャ
 export const MESSAGE_TEXTURE_KEY = 'image-msg-back00';
 export const MESSAGE_TEXTURE_PATH = `${import.meta.env.BASE_URL}textures/textures00/image_msg_back.webp`;
+export const MESSAGE_FLIP_TEXTURE_KEY = 'image-msg-back-flip00';
+export const MESSAGE_FLIP_TEXTURE_PATH = `${import.meta.env.BASE_URL}textures/textures00/image_msg_back_flip.webp`;
 
 /**
  * 顔アトラスのフレーム名
