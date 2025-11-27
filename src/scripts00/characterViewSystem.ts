@@ -69,6 +69,7 @@ export class CharacterViewSystem {
     
     // アイドルアニメーション再生再開
     this.cancelContext = new CancelContext();
-    this.playIdleAnimationAsync(this.cancelContext, 7800).then();
+    const randomDelayMs = Math.floor(Math.random() * 2200) + 5600;
+    this.playIdleAnimationAsync(this.cancelContext, randomDelayMs).then();
   }
 }
