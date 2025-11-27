@@ -81,3 +81,6 @@ export const BACKGROUND_COLOR = GetColorCodeByRGB(255, 255, 255);
 export const LABEL_TEXT_COLOR = GetColorCodeTextByRGB(60, 60, 60);
 // ラベルテキストサイズ
 export const LABEL_TEXT_SIZE = 30;
+
+// 入力フィールドバーの高さ
+export const INPUT_FIELD_BAR_HEIGHT = 50;
