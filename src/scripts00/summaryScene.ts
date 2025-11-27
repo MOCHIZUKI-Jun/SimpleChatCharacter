@@ -29,6 +29,7 @@ import {InputFieldView} from "./inputFieldView.ts";
 import {MessageViewSystem} from "./messageViewSystem.ts";
 import {SimpleMessageBroker} from "../utility/simpleMessageBroker.ts";
 import {CuteMockLLM} from "./cuteMockLLM.ts";
+import {CharacterViewSystem} from "./characterViewSystem.ts";
 
 
 /**
@@ -45,6 +46,7 @@ export class SummaryScene extends Phaser.Scene {
   private inputFieldView!: InputFieldView;
   
   private messageViewSystem!: MessageViewSystem;
+  private characterViewSystem!: CharacterViewSystem;
 
   // 表示フラグ
   private isShow = false;
@@ -100,6 +102,11 @@ export class SummaryScene extends Phaser.Scene {
     // FPS表示
     new FpsView(this);
     
+    // キャラ表示システム
+    this.characterViewSystem = new CharacterViewSystem(
+      messageBroker,
+      this.characterView,
+    );
     // メッセージ表示システム
     this.messageViewSystem = new MessageViewSystem(
       this,
@@ -112,6 +119,7 @@ export class SummaryScene extends Phaser.Scene {
   public dispose() {
     this.disposables.forEach(d => d.dispose());
     this.characterView.dispose();
+    this.characterViewSystem.dispose();
     this.messageViewSystem.dispose();
   }
   

@@ -8,9 +8,7 @@ export class CuteMockLLM implements ApiClientInterface {
   /**
    * @inheritDoc
    */
-  public async request(message: string): Promise<string> {
-    console.log('CuteMockLLM request:', message);
-    
+  public async request(_message: string): Promise<string> {
     // 簡単なモック応答を生成
     const responses = [
       "それはとても興味深いガウ！",
@@ -25,7 +23,8 @@ export class CuteMockLLM implements ApiClientInterface {
     
     // 応答を返す
     return new Promise((resolve) => {
-      setTimeout(() => resolve(response), 1000); // 1秒の遅延をシミュレート
+      const randomDerayMs = Math.floor(Math.random() * 1000) + 1000; // 1000ms〜2000msのランダム遅延
+      setTimeout(() => resolve(response), randomDerayMs);
     });
   }
 }
