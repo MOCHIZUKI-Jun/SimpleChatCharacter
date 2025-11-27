@@ -3,8 +3,9 @@ import {SimpleObservable} from "../utility/simpleObservable.ts";
 import {ReadonlyObservableInterface} from "../utility/simpleDisposableInterface.ts";
 import {getWorldPos} from "../utility/transformUtility.ts";
 import {isVisibleWithParent} from "../utility/containerUtility.ts";
+import {isMobile} from "../define.ts";
 
-const DEBUG = true;
+const DEBUG = false;
 
 // スマホでの最小フォントサイズ
 const SAFETY_FONT_SIZE = 16.5;
@@ -18,9 +19,9 @@ export class TextInputField extends Phaser.GameObjects.Container {
   private inputElement!: HTMLInputElement;
   private isVisibleInHierarchy = true;
 
-  private worldPos = {x: 0, y: 0};
-  private windowWidth = 0;
-  private windowHeight = 0;
+  private isFocused = false;
+  private leftOnUnfocus = 0;
+  private bottomDiffOnUnfocus = 0;
   
   constructor(
     scene: Phaser.Scene,
@@ -30,10 +31,15 @@ export class TextInputField extends Phaser.GameObjects.Container {
     textColor: string,
   ) {
     super(scene, 0, 0);
-
+    scene.add.existing(this);
+    
     const width = Number.parseInt(styleWidth.replace("px", ""));
     const height = Number.parseInt(styleFontSize.replace("px", ""));
     this.setSize(width, height);
+    
+
+
+    console.log(this.width, this.height);
     if (DEBUG) this.addDebugRect();
 
     // HTML の `<input>` を作成
@@ -45,7 +51,17 @@ export class TextInputField extends Phaser.GameObjects.Container {
     this.inputElement.style.color = textColor;
     this.inputElement.style.borderWidth = "0px";
     this.inputElement.style.outlineWidth = "0px";
-    this.inputElement.style.touchAction = "none"; // NOTE:スマホでzoomさせたくないが機能しない
+    this.inputElement.style.touchAction = "none";
+
+    this.inputElement.addEventListener('focus', () => {
+      console.log("isFocused");
+      this.isFocused = true;
+    });
+    
+    this.inputElement.addEventListener('blur', () => {
+      console.log("isBlurred");
+      this.isFocused = false;
+    })
 
     document.body.appendChild(this.inputElement);
 
@@ -60,8 +76,6 @@ export class TextInputField extends Phaser.GameObjects.Container {
       this.inputElement.remove();
     });
     
-    this.worldPos = getWorldPos(this);
-    
     // 毎フレーム更新
     this.scene.events.on("update", () => {
       this.updatePosition();
@@ -73,30 +87,50 @@ export class TextInputField extends Phaser.GameObjects.Container {
       }
       this.isVisibleInHierarchy = isVisibleInHierarchy;
     });
-    
-    //this.hideField();
   }
 
   private updatePosition() {
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
+    if (this.isFocused) {
+      this.checkViewportPosition();
+      this.updatePositionOnFocus();
+    } else {
+      this.updatePositionOnUnfocus();
+    }
+  }
 
+  /**
+   * ビューポートの左下からの位置をチェック
+   */
+  private checkViewportPosition() {
+    const rect = this.inputElement.getBoundingClientRect();
+    const vh = window.innerHeight;
+    this.leftOnUnfocus = rect.left;
+    this.bottomDiffOnUnfocus = vh - rect.bottom;
+  }
+  
+  /**
+   * フォーカス時(スマートフォン)のテキストフィールド位置更新
+   */
+  private updatePositionOnFocus() {
+    if (!isMobile) return;
+    
+    this.inputElement.style.position = 'fixed';
+
+    const vh = window.innerHeight;
+    const leftOnFocus = this.leftOnUnfocus;
+    const bottomOnFocus = vh - this.bottomDiffOnUnfocus;
+    
+    this.inputElement.style.left = leftOnFocus + 'px';
+    this.inputElement.style.bottom = bottomOnFocus + 'px';
+    this.inputElement.style.transform = 'none';
+  }
+  
+  /**
+   * 通常のテキストフィールド位置更新
+   */
+  private updatePositionOnUnfocus() {
     const worldPos = getWorldPos(this);
 
-    if (
-      this.windowWidth === windowWidth &&
-      this.windowHeight === windowHeight &&
-      this.worldPos.x === worldPos.x &&
-      this.worldPos.y === worldPos.y
-    ) {
-      return;
-    }
-
-    this.worldPos = worldPos;
-    this.windowWidth = windowWidth;
-    this.windowHeight = windowHeight;
-
-    const bounds = this.getBounds();
     const canvas = this.scene.game.canvas;
     const canvasBounds = canvas.getBoundingClientRect();
 
@@ -110,21 +144,20 @@ export class TextInputField extends Phaser.GameObjects.Container {
     const addY = worldPos.y * scaleY;
 
     // サイズもスケール
-    const width = bounds.width * scaleX;
-    const height = bounds.height * scaleY;
+    const width = this.width * scaleX;
+    const height = this.height * scaleY;
 
     const left = canvasBounds.left + addX - width / 2;
     const top = canvasBounds.top + addY - height / 2;
 
+    this.inputElement.style.position = "absolute";
     this.inputElement.style.left = `${left}px`;
     this.inputElement.style.top = `${top}px`;
     this.inputElement.style.width = `${width}px`;
     this.inputElement.style.height = `${height}px`;
     // devicePixelRatioを考慮したフォントサイズ
-    //this.inputElement.style.fontSize = `${height * 0.9 / dpr}px`;
     const useSize = Math.max(height * 0.9 / dpr, SAFETY_FONT_SIZE);
     this.inputElement.style.fontSize = `${useSize}px`;
-
   }
 
   private hideField() {

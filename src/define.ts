@@ -16,7 +16,7 @@ export const MOBILE_SCREEN_SIZE = {
   HEIGHT: 1080
 }
 
-const isMobile = /iPhone|Android/i.test(navigator.userAgent);
+export const isMobile = /iPhone|Android/i.test(navigator.userAgent);
 
 /**
  * 基準スクリーンサイズとモバイルのスクリーンサイズでオブジェクトの見た目を統一する際のスケール補正値を取得
