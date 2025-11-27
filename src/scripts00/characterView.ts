@@ -128,9 +128,9 @@ export class CharacterView extends Phaser.GameObjects.Container {
     
     this.cancelContext = new CancelContext();
     this.playEyeBlinkLoopAsync(this.cancelContext).then();
-    //this.playSideShakeLoopAsync(this.cancelContext, 7, 1000).then();
-    //this.playTailShakeLoopAsync(this.cancelContext, 15, 800).then();
-    this.playTalkingLoopAsync(this.cancelContext).then();
+    this.playSideShakeLoopAsync(this.cancelContext, 7, 1000).then();
+    this.playTailShakeLoopAsync(this.cancelContext, 15, 800).then();
+    //this.playTalkingLoopAsync(this.cancelContext).then();
     
     this.scene.events.on("update", () => {
       this.onUpdate(this.scene.game.loop.delta);
@@ -138,6 +138,13 @@ export class CharacterView extends Phaser.GameObjects.Container {
     
     if (ANCHOR_DEBUG_MODE) this.showDebugAnchors();
     if (ANIMATION_DEBUG_MODE) this.playDebugAnimAsync().then();
+  }
+  
+  /**
+   * 現在のアニメーションを停止
+   */
+  public stopCurrentAnimation() {
+    this.cancelContext.cancel();
   }
   
   /**
