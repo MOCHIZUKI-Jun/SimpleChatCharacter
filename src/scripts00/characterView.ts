@@ -27,6 +27,10 @@ export class CancelContext {
   public get isCancelled() {
     return this._isCancelled;
   }
+  
+  public cancel() {
+    this._isCancelled = true;
+  }
 }
 
 /**
@@ -34,6 +38,8 @@ export class CancelContext {
  */
 export class CharacterView extends Phaser.GameObjects.Container {
 
+  private cancelContext : CancelContext;
+  
   private containers: Container[] = [];
   private debugAnchors: Rectangle[] = [];
   
@@ -120,17 +126,54 @@ export class CharacterView extends Phaser.GameObjects.Container {
     this.setEyes(true);
     this.setMouth(true);
     
-    const cancelContext = new CancelContext();
-    this.playEyeBlinkLoopAsync(cancelContext).then();
-    this.playSideShakeLoopAsync(cancelContext, 7, 1000).then();
-    this.playTailShakeLoopAsync(cancelContext, 15, 800).then();
-
+    this.cancelContext = new CancelContext();
+    this.playEyeBlinkLoopAsync(this.cancelContext).then();
+    //this.playSideShakeLoopAsync(this.cancelContext, 7, 1000).then();
+    //this.playTailShakeLoopAsync(this.cancelContext, 15, 800).then();
+    this.playTalkingLoopAsync(this.cancelContext).then();
+    
     this.scene.events.on("update", () => {
       this.onUpdate(this.scene.game.loop.delta);
     });
     
     if (ANCHOR_DEBUG_MODE) this.showDebugAnchors();
     if (ANIMATION_DEBUG_MODE) this.playDebugAnimAsync().then();
+  }
+  
+  /**
+   * トークアニメーションループ
+   */
+  public async playTalkingLoopAsync(cancelContext: CancelContext) {
+    this.playSingleTailShakeAsync().then();
+    this.playSingleDownShakeAsync().then();
+    while (!cancelContext.isCancelled) {
+      await this.playSingleMouthOpenCloseAsync();
+      await waitMilliSeconds(100);
+    }
+  }
+  
+  /**
+   * 体を下に揺らして戻すアニメーションを再生
+   */
+  public async playSingleDownShakeAsync(durationMs: number = 200) {
+    await tweenAsync(
+      this.scene,
+      {
+        targets: this.rootContainer,
+        y: 50,
+        duration: durationMs,
+        ease: "Sine.easeInOut",
+      }
+    );
+    await tweenAsync(
+      this.scene,
+      {
+        targets: this.rootContainer,
+        y: 0,
+        duration: durationMs,
+        ease: "Sine.easeInOut",
+      }
+    );
   }
   
   /**
@@ -159,6 +202,32 @@ export class CharacterView extends Phaser.GameObjects.Container {
         }
       );
     }
+    // 中心へ
+    await tweenAsync(
+      this.scene,
+      {
+        targets: this.tailContainer,
+        angle: 0,
+        duration: durationMs * 0.5,
+        ease: "Sine.easeInOut",
+      }
+    );
+  }
+  
+  /**
+   * 尻尾を一度だけ左右に揺らすアニメーションを再生
+   */
+  public playSingleTailShakeAsync(degree: number = 20, durationMs: number = 600) {
+    return tweenAsync(
+      this.scene,
+      {
+        targets: this.tailContainer,
+        angle: degree,
+        duration: durationMs * 0.5,
+        ease: "Sine.easeInOut",
+        yoyo: true,
+      }
+    );
   }
   
   /**
@@ -500,6 +569,8 @@ export class CharacterView extends Phaser.GameObjects.Container {
       await this.playSingleMouthOpenCloseAsync();
       await waitMilliSeconds(100);
     }
+    
+    this.cancelContext?.cancel();
     
     /*
     for (let i = 0; i < 10; i++) {
