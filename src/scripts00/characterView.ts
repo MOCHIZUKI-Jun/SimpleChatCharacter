@@ -12,7 +12,7 @@ import {getWorldPos} from "../utility/transformUtility.ts";
 import {waitMilliSeconds} from "../utility/asyncUtility.ts";
 
 const ANCHOR_DEBUG_MODE = false;
-const ANIMATION_DEBUG_MODE = false;
+const ANIMATION_DEBUG_MODE = true;
 
 type Container = Phaser.GameObjects.Container;
 type Rectangle = Phaser.GameObjects.Rectangle;
@@ -81,10 +81,10 @@ export class CharacterView extends Phaser.GameObjects.Container {
   // 左目のコンテナ
   private eyeLeftContainer!: Container;
   // 右目のイメージ
-  private eyeRightImage!: Image;
+  private eyeRightOpenImage!: Image;
   private eyeRightCloseImage!: Image;
   // 左目のイメージ
-  private eyeLeftImage!: Image;
+  private eyeLeftOpenImage!: Image;
   private eyeLeftCloseImage!: Image;
   // 右眉のコンテナ
   private browRightContainer!: Container;
@@ -97,7 +97,8 @@ export class CharacterView extends Phaser.GameObjects.Container {
   // 口のコンテナ
   private mouthContainer!: Container;
   // 口のイメージ
-  private mouthImage!: Image;
+  private mouthOpenImage!: Image;
+  private mouthCloseImage!: Image;
   
   /**
    * コンストラクタ
@@ -116,6 +117,7 @@ export class CharacterView extends Phaser.GameObjects.Container {
     }
     
     this.setEyes(true);
+    this.setMouth(true);
     
     const cancelContext = new CancelContext();
     this.playEyeBlinkLoopAsync(cancelContext).then();
@@ -155,6 +157,18 @@ export class CharacterView extends Phaser.GameObjects.Container {
   }
   
   /**
+   * 口の開閉アニメーション再生
+   */
+  public async playSingleMouthOpenCloseAsync() {
+    // 口を閉じる
+    this.setMouth(false);
+    // 閉じている時間
+    await waitMilliSeconds(100);
+    // 口を開ける
+    this.setMouth(true);
+  }
+  
+  /**
    * 目の開閉
    */
   public setEyes(isOpen: boolean) {
@@ -166,7 +180,7 @@ export class CharacterView extends Phaser.GameObjects.Container {
    * 右目の開閉
    */
   public setEyeR(isOpen: boolean) {
-    this.eyeRightImage.visible = isOpen;
+    this.eyeRightOpenImage.visible = isOpen;
     this.eyeRightCloseImage.visible = !isOpen;
   }
   
@@ -174,8 +188,16 @@ export class CharacterView extends Phaser.GameObjects.Container {
    * 左目の開閉
    */
   public setEyeL(isOpen: boolean) {
-    this.eyeLeftImage.visible = isOpen;
+    this.eyeLeftOpenImage.visible = isOpen;
     this.eyeLeftCloseImage.visible = !isOpen;
+  }
+  
+  /**
+   * 口の開閉
+   */
+  public setMouth(isOpen: boolean) {
+    this.mouthOpenImage.visible = isOpen;
+    this.mouthCloseImage.visible = !isOpen;
   }
   
   /**
@@ -196,6 +218,7 @@ export class CharacterView extends Phaser.GameObjects.Container {
     const eyeScale = 0.66;
     const eyeCloseScale = 0.76;
     const mouthScale = 0.6;
+    const mouthCloseScale = 0.7;
     
     // 体回転コンテナ
     this.bodyRotateContainer = this.createContainer(0, 500);
@@ -284,18 +307,18 @@ export class CharacterView extends Phaser.GameObjects.Container {
     this.headFrontContainer.add(this.eyeLeftContainer);
     
     // 右目イメージ
-    this.eyeRightImage = this.scene.add.image(0, 0, FACE_ATLAS_KEY, FACE_ATLAS_PART.EYE_RIGHT_OPEN);
-    this.eyeRightImage.setScale(eyeScale);
-    this.eyeRightContainer.add(this.eyeRightImage);
+    this.eyeRightOpenImage = this.scene.add.image(0, 0, FACE_ATLAS_KEY, FACE_ATLAS_PART.EYE_RIGHT_OPEN);
+    this.eyeRightOpenImage.setScale(eyeScale);
+    this.eyeRightContainer.add(this.eyeRightOpenImage);
     // 閉
     this.eyeRightCloseImage = this.scene.add.image(-3, 6, FACE_ATLAS_KEY, FACE_ATLAS_PART.EYE_RIGHT_CLOSED);
     this.eyeRightCloseImage.setScale(eyeCloseScale);
     this.eyeRightContainer.add(this.eyeRightCloseImage);
     
     // 左目イメージ
-    this.eyeLeftImage = this.scene.add.image(0, 0, FACE_ATLAS_KEY, FACE_ATLAS_PART.EYE_LEFT_OPEN);
-    this.eyeLeftImage.setScale(eyeScale);
-    this.eyeLeftContainer.add(this.eyeLeftImage);
+    this.eyeLeftOpenImage = this.scene.add.image(0, 0, FACE_ATLAS_KEY, FACE_ATLAS_PART.EYE_LEFT_OPEN);
+    this.eyeLeftOpenImage.setScale(eyeScale);
+    this.eyeLeftContainer.add(this.eyeLeftOpenImage);
     // 閉
     this.eyeLeftCloseImage = this.scene.add.image(3, 6, FACE_ATLAS_KEY, FACE_ATLAS_PART.EYE_LEFT_CLOSED);
     this.eyeLeftCloseImage.setScale(eyeCloseScale);
@@ -324,9 +347,13 @@ export class CharacterView extends Phaser.GameObjects.Container {
     this.headFrontContainer.add(this.mouthContainer);
     
     // 口イメージ
-    this.mouthImage = this.scene.add.image(0, 0, MOUTH_TEXTURE_KEY);
-    this.mouthImage.setScale(mouthScale);
-    this.mouthContainer.add(this.mouthImage);
+    this.mouthOpenImage = this.scene.add.image(0, 0, MOUTH_TEXTURE_KEY);
+    this.mouthOpenImage.setScale(mouthScale);
+    this.mouthContainer.add(this.mouthOpenImage);
+    // 閉
+    this.mouthCloseImage = this.scene.add.image(0, 2, FACE_ATLAS_KEY, FACE_ATLAS_PART.MOUTH_CLOSED);
+    this.mouthCloseImage.setScale(mouthCloseScale);
+    this.mouthContainer.add(this.mouthCloseImage);
   }
   
   /**
@@ -349,13 +376,21 @@ export class CharacterView extends Phaser.GameObjects.Container {
    */
   private async playDebugAnimAsync() {
     console.log("CharacterView: playDebugAnim");
+
+    await waitMilliSeconds(1000);
+    for (let i = 0; i < 10; i++) {
+      await this.playSingleMouthOpenCloseAsync();
+      await waitMilliSeconds(100);
+    }
     
+    /*
     for (let i = 0; i < 10; i++) {
       await waitMilliSeconds(1000);
       this.setEyes(false);
       await waitMilliSeconds(1000);
       this.setEyes(true);
     }
+    */
   }
   
   /**

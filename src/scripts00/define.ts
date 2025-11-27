@@ -55,6 +55,8 @@ export const FACE_ATLAS_PART = {
   EYEBROW_RIGHT: "eyebrow_right",
   // 左眉
   EYEBROW_LEFT: "eyebrow_left",
+  // 口(閉)
+  MOUTH_CLOSED: "mouth_small",
   // 右角
   HORN_RIGHT: "horn_right",
   // 左角
