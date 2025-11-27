@@ -6,6 +6,9 @@ import {isVisibleWithParent} from "../utility/containerUtility.ts";
 
 const DEBUG = true;
 
+// スマホでの最小フォントサイズ
+const SAFETY_FONT_SIZE = 16.5;
+
 /**
  * テキスト入力フィールド
  */
@@ -40,6 +43,8 @@ export class TextInputField extends Phaser.GameObjects.Container {
     this.inputElement.style.fontSize = styleFontSize;
     this.inputElement.style.backgroundColor = color;
     this.inputElement.style.color = textColor;
+    this.inputElement.style.borderWidth = "0px";
+    this.inputElement.style.outlineWidth = "0px";
     this.inputElement.style.touchAction = "none"; // NOTE:スマホでzoomさせたくないが機能しない
 
     document.body.appendChild(this.inputElement);
@@ -68,55 +73,58 @@ export class TextInputField extends Phaser.GameObjects.Container {
       }
       this.isVisibleInHierarchy = isVisibleInHierarchy;
     });
+    
+    //this.hideField();
   }
 
   private updatePosition() {
-    // 現在のウィンドウのサイズ
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
-    
-    const isSameWindowSize =
-      this.windowWidth === windowWidth && this.windowHeight === windowHeight;
-    
-    // 現在のワールド座標
+
     const worldPos = getWorldPos(this);
-    
-    const isSameWorldPos =
-      this.worldPos.x === worldPos.x && this.worldPos.y === worldPos.y;
-    
-    // ウィンドウサイズと位置が変わっていないのであればリターン
-    if (isSameWindowSize && isSameWorldPos) {
+
+    if (
+      this.windowWidth === windowWidth &&
+      this.windowHeight === windowHeight &&
+      this.worldPos.x === worldPos.x &&
+      this.worldPos.y === worldPos.y
+    ) {
       return;
     }
-    
+
     this.worldPos = worldPos;
     this.windowWidth = windowWidth;
     this.windowHeight = windowHeight;
-    
+
     const bounds = this.getBounds();
-    const canvasBounds = this.scene.game.canvas.getBoundingClientRect();
+    const canvas = this.scene.game.canvas;
+    const canvasBounds = canvas.getBoundingClientRect();
 
-    const rateW = canvasBounds.width / this.scene.game.canvas.width;
+    // devicePixelRatioを考慮したスケール計算
+    const scaleX = canvasBounds.width / canvas.width;
+    const scaleY = canvasBounds.height / canvas.height;
+    const dpr = window.devicePixelRatio || 1;
 
-    const addX = worldPos.x * rateW;
-    const addY = worldPos.y * rateW;
+    // world座標をCSSピクセルに変換
+    const addX = worldPos.x * scaleX;
+    const addY = worldPos.y * scaleY;
 
-    const width = bounds.width * rateW;
-    const height = bounds.height * rateW;
+    // サイズもスケール
+    const width = bounds.width * scaleX;
+    const height = bounds.height * scaleY;
 
     const left = canvasBounds.left + addX - width / 2;
     const top = canvasBounds.top + addY - height / 2;
-
-    //console.log("bounds", bounds);
-    //console.log("worldPos", worldPos);
-    //console.log("canvasBounds", canvasBounds);
-    //console.log(`left:${left} top:${top}`);
 
     this.inputElement.style.left = `${left}px`;
     this.inputElement.style.top = `${top}px`;
     this.inputElement.style.width = `${width}px`;
     this.inputElement.style.height = `${height}px`;
-    this.inputElement.style.fontSize = `${height * 0.9}px`;
+    // devicePixelRatioを考慮したフォントサイズ
+    //this.inputElement.style.fontSize = `${height * 0.9 / dpr}px`;
+    const useSize = Math.max(height * 0.9 / dpr, SAFETY_FONT_SIZE);
+    this.inputElement.style.fontSize = `${useSize}px`;
+
   }
 
   private hideField() {

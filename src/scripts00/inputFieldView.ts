@@ -39,7 +39,7 @@ export class InputFieldView extends Phaser.GameObjects.Container {
       GetColorCodeTextByRGB(255, 255, 255),
       GetColorCodeTextByRGB(0, 0, 0),
     );
-    this._textInputField.setPosition(0, -4);
+    this._textInputField.setPosition(0, 0);
     this.add(this._textInputField);
   }
   
