@@ -33,6 +33,14 @@
       "frame": { "x": 849, "y": 758, "w": 101, "h": 89 }
     },
     {
+      "filename": "eye_left_closed0",
+      "frame": { "x": 654, "y": 980, "w": 79, "h": 30 }
+    },
+    {
+      "filename": "eye_right_closed0",
+      "frame": { "x": 852, "y": 980, "w": 79, "h": 30 }
+    },
+    {
       "filename": "eye_left_closed",
       "frame": { "x": 654, "y": 713, "w": 79, "h": 15 }
     },

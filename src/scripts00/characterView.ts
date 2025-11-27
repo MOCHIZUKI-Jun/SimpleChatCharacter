@@ -9,12 +9,24 @@ import {
 } from "./define.ts";
 import {GetColorCodeByRGB} from "../utility/colorUtility.ts";
 import {getWorldPos} from "../utility/transformUtility.ts";
+import {waitMilliSeconds} from "../utility/asyncUtility.ts";
 
-const DEBUG_MODE = false;
+const ANCHOR_DEBUG_MODE = false;
+const ANIMATION_DEBUG_MODE = false;
 
 type Container = Phaser.GameObjects.Container;
 type Rectangle = Phaser.GameObjects.Rectangle;
 type Image = Phaser.GameObjects.Image;
+
+/**
+ * キャンセルトークン
+ */
+export class CancelContext {
+  private _isCancelled = false;
+  public get isCancelled() {
+    return this._isCancelled;
+  }
+}
 
 /**
  * キャラクタービュー
@@ -70,8 +82,10 @@ export class CharacterView extends Phaser.GameObjects.Container {
   private eyeLeftContainer!: Container;
   // 右目のイメージ
   private eyeRightImage!: Image;
+  private eyeRightCloseImage!: Image;
   // 左目のイメージ
   private eyeLeftImage!: Image;
+  private eyeLeftCloseImage!: Image;
   // 右眉のコンテナ
   private browRightContainer!: Container;
   // 左眉のコンテナ
@@ -97,9 +111,71 @@ export class CharacterView extends Phaser.GameObjects.Container {
     
     this.create();
     
-    if (DEBUG_MODE) {
+    if (ANCHOR_DEBUG_MODE) {
       this.showDebugAnchors();
     }
+    
+    this.setEyes(true);
+    
+    const cancelContext = new CancelContext();
+    this.playEyeBlinkLoopAsync(cancelContext).then();
+    
+    if (ANIMATION_DEBUG_MODE) this.playDebugAnimAsync().then();
+  }
+  
+  /**
+   * 待機用の目の開閉ループ
+   */
+  public async playEyeBlinkLoopAsync(cancelContext: CancelContext) {
+    while (!cancelContext.isCancelled) {
+      // 開いている時間
+      await waitMilliSeconds(3000);
+      // パチ
+      await this.playSingleEyeBlinkAsync();
+      // 開いている時間
+      await waitMilliSeconds(2000);
+      // パチ
+      await this.playSingleEyeBlinkAsync();
+      await waitMilliSeconds(100);
+      // パチ
+      await this.playSingleEyeBlinkAsync();
+    }
+  }
+  
+  /**
+   * 目の瞬きアニメーション再生
+   */
+  public async playSingleEyeBlinkAsync() {
+    // 目を閉じる
+    this.setEyes(false);
+    // 閉じている時間
+    await waitMilliSeconds(100);
+    // 目を開ける
+    this.setEyes(true);
+  }
+  
+  /**
+   * 目の開閉
+   */
+  public setEyes(isOpen: boolean) {
+    this.setEyeR(isOpen);
+    this.setEyeL(isOpen);
+  }
+  
+  /**
+   * 右目の開閉
+   */
+  public setEyeR(isOpen: boolean) {
+    this.eyeRightImage.visible = isOpen;
+    this.eyeRightCloseImage.visible = !isOpen;
+  }
+  
+  /**
+   * 左目の開閉
+   */
+  public setEyeL(isOpen: boolean) {
+    this.eyeLeftImage.visible = isOpen;
+    this.eyeLeftCloseImage.visible = !isOpen;
   }
   
   /**
@@ -118,6 +194,7 @@ export class CharacterView extends Phaser.GameObjects.Container {
     const hairFrontScale = 0.82;
     const crownScale = 0.7;
     const eyeScale = 0.66;
+    const eyeCloseScale = 0.76;
     const mouthScale = 0.6;
     
     // 体回転コンテナ
@@ -210,11 +287,19 @@ export class CharacterView extends Phaser.GameObjects.Container {
     this.eyeRightImage = this.scene.add.image(0, 0, FACE_ATLAS_KEY, FACE_ATLAS_PART.EYE_RIGHT_OPEN);
     this.eyeRightImage.setScale(eyeScale);
     this.eyeRightContainer.add(this.eyeRightImage);
+    // 閉
+    this.eyeRightCloseImage = this.scene.add.image(-3, 6, FACE_ATLAS_KEY, FACE_ATLAS_PART.EYE_RIGHT_CLOSED);
+    this.eyeRightCloseImage.setScale(eyeCloseScale);
+    this.eyeRightContainer.add(this.eyeRightCloseImage);
     
     // 左目イメージ
     this.eyeLeftImage = this.scene.add.image(0, 0, FACE_ATLAS_KEY, FACE_ATLAS_PART.EYE_LEFT_OPEN);
     this.eyeLeftImage.setScale(eyeScale);
     this.eyeLeftContainer.add(this.eyeLeftImage);
+    // 閉
+    this.eyeLeftCloseImage = this.scene.add.image(3, 6, FACE_ATLAS_KEY, FACE_ATLAS_PART.EYE_LEFT_CLOSED);
+    this.eyeLeftCloseImage.setScale(eyeCloseScale);
+    this.eyeLeftContainer.add(this.eyeLeftCloseImage);
     
     // 右眉コンテナ
     this.browRightContainer = this.createContainer(60, -130);
@@ -257,6 +342,20 @@ export class CharacterView extends Phaser.GameObjects.Container {
     this.containers.push(container);
     this.add(container);
     return container;
+  }
+  
+  /**
+   * デバッグ用アニメーション再生
+   */
+  private async playDebugAnimAsync() {
+    console.log("CharacterView: playDebugAnim");
+    
+    for (let i = 0; i < 10; i++) {
+      await waitMilliSeconds(1000);
+      this.setEyes(false);
+      await waitMilliSeconds(1000);
+      this.setEyes(true);
+    }
   }
   
   /**

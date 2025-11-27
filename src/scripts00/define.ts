@@ -46,11 +46,11 @@ export const FACE_ATLAS_PART = {
   // 右目開
   EYE_RIGHT_OPEN: "eye_right_open",
   // 右目閉
-  EYE_RIGHT_CLOSED: "eye_right_closed",
+  EYE_RIGHT_CLOSED: "eye_right_closed0",
   // 左目開
   EYE_LEFT_OPEN: "eye_left_open",
   // 左目閉
-  EYE_LEFT_CLOSED: "eye_left_closed",
+  EYE_LEFT_CLOSED: "eye_left_closed0",
   // 右眉
   EYEBROW_RIGHT: "eyebrow_right",
   // 左眉
