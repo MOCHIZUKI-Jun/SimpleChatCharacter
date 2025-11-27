@@ -67,12 +67,12 @@ export class TextInputField extends Phaser.GameObjects.Container {
     this.inputElement.style.touchAction = "none";
 
     this.inputElement.addEventListener('focus', () => {
-      console.log("isFocused");
+      //console.log("isFocused");
       this.isFocused = true;
     });
     
     this.inputElement.addEventListener('blur', () => {
-      console.log("isBlurred");
+      //console.log("isBlurred");
       this.isFocused = false;
     })
 
