@@ -138,8 +138,8 @@ export class CharacterView extends Phaser.GameObjects.Container {
     
     this.cancelContext = new CancelContext();
     this.playEyeBlinkLoopAsync(this.cancelContext).then();
-    this.playSideShakeLoopAsync(this.cancelContext, 7, 1000).then();
-    this.playTailShakeLoopAsync(this.cancelContext, 15, 800).then();
+    this.playSideShakeLoopAsync(this.cancelContext).then();
+    this.playTailShakeLoopAsync(this.cancelContext).then();
     //this.playTalkingLoopAsync(this.cancelContext).then();
     
     this.scene.events.on("update", () => {
@@ -196,7 +196,7 @@ export class CharacterView extends Phaser.GameObjects.Container {
   /**
    * 尻尾を左右に揺らすループ
    */
-  public async playTailShakeLoopAsync(cancelContext: CancelContext, degree: number, durationMs: number) {
+  public async playTailShakeLoopAsync(cancelContext: CancelContext, degree: number = 15, durationMs: number = 800) {
     while (!cancelContext.isCancelled) {
       // 右へ
       await tweenAsync(
@@ -250,7 +250,7 @@ export class CharacterView extends Phaser.GameObjects.Container {
   /**
    * 体を左右に揺らすループ
    */
-  public async playSideShakeLoopAsync(cancelContext: CancelContext, degree: number, durationMs: number) {
+  public async playSideShakeLoopAsync(cancelContext: CancelContext, degree: number = 7, durationMs: number = 1000) {
     // 右へ
     await tweenAsync(
       this.scene,
@@ -648,14 +648,17 @@ export class CharacterView extends Phaser.GameObjects.Container {
     
     this.cancelContext?.cancel();
     
-    /*
-    for (let i = 0; i < 10; i++) {
-      await waitMilliSeconds(1000);
-      this.setEyes(false);
-      await waitMilliSeconds(1000);
-      this.setEyes(true);
-    }
-    */
+    this.cancelContext = new CancelContext();
+    await waitMilliSeconds(2000);
+    this.playTalkingLoopAsync(this.cancelContext).then();
+    
+    await waitMilliSeconds(6000);
+    this.cancelContext?.cancel();
+    
+    this.cancelContext = new CancelContext();
+    await waitMilliSeconds(2000);
+    this.playSideShakeLoopAsync(this.cancelContext).then();
+    this.playTailShakeLoopAsync(this.cancelContext).then();
   }
   
   /**
