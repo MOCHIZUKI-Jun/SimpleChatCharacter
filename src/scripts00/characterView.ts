@@ -11,6 +11,7 @@ import {GetColorCodeByRGB} from "../utility/colorUtility.ts";
 import {getWorldPos} from "../utility/transformUtility.ts";
 import {waitMilliSeconds} from "../utility/asyncUtility.ts";
 import {tweenAsync} from "../utility/tweenAsync.ts";
+import {SingleColumnHairStrip} from "./singleColumnHairStrip.ts";
 
 const ANCHOR_DEBUG_MODE = false;
 const ANIMATION_DEBUG_MODE = false;
@@ -61,23 +62,27 @@ export class CharacterView extends Phaser.GameObjects.Container {
   // 頭背面のコンテナ
   private headBackContainer!: Container;
   // 後ろ髪のイメージ
-  private hairBackImage!: Image
+  private hairBackImage!: Image;
   // 右角のコンテナ
   private hornRightContainer!: Container;
   // 右角のイメージ
-  private hornRightImage!: Image
+  private hornRightImage!: Image;
   // 左角のコンテナ
   private hornLeftContainer!: Container
   // 左角のイメージ
-  private hornLeftImage!: Image
+  private hornLeftImage!: Image;
   // 右横髪のコンテナ
   private hairSideRContainer!: Container;
   // 右横髪のイメージ
-  private hairSideRImage!: Image
+  private hairSideRImage!: Image;
+  // 右横髪メッシュ
+  private hairSideRStrip!: SingleColumnHairStrip;
   // 左横髪のコンテナ
   private hairSideLContainer!: Container
   // 左横髪のイメージ
-  private hairSideLImage!: Image
+  private hairSideLImage!: Image;
+  // 左横髪メッシュ
+  private hairSideLStrip!: SingleColumnHairStrip;
   // 前髪のイメージ
   private hairFrontImage!: Image;
   
@@ -122,6 +127,8 @@ export class CharacterView extends Phaser.GameObjects.Container {
     
     this.create();
     
+    this.hairSideRStrip.setEnable(true);
+    this.hairSideLStrip.setEnable(true);
     
     this.setEyes(true);
     this.setMouth(true);
@@ -467,17 +474,50 @@ export class CharacterView extends Phaser.GameObjects.Container {
     // 右横髪コンテナ
     this.hairSideRContainer = this.createContainer(125, -80);
     this.headFrontContainer.add(this.hairSideRContainer);
+    
     // 右横髪イメージ
     this.hairSideRImage = this.scene.add.image(20, 100, HAIR_SIDE_R_TEXTURE_KEY);
-    this.hairSideRImage.setScale(hairSideScale);
-    this.hairSideRContainer.add(this.hairSideRImage);
+
+    // 右横髪メッシュ
+    const hairSideRImageTextureWidth = this.hairSideRImage.width * hairSideScale;
+    const hairSideRImageTextureHeight = this.hairSideRImage.height * hairSideScale;
+    this.hairSideRStrip = new SingleColumnHairStrip(
+      this.scene,
+      HAIR_SIDE_R_TEXTURE_KEY,
+      5,
+      hairSideRImageTextureWidth,
+      hairSideRImageTextureHeight
+    );
+    this.hairSideRStrip.setPosition(20, 100);
+    this.hairSideRContainer.add(this.hairSideRStrip);
+    
+    //this.hairSideRImage.setScale(hairSideScale);
+    //this.hairSideRContainer.add(this.hairSideRImage);
+    this.hairSideRImage.setVisible(false);
+    
+    
     // 左横髪コンテナ
     this.hairSideLContainer = this.createContainer(-135, -80);
     this.headFrontContainer.add(this.hairSideLContainer);
     // 左横髪イメージ
     this.hairSideLImage = this.scene.add.image(-20, 100, HAIR_SIDE_L_TEXTURE_KEY);
-    this.hairSideLImage.setScale(hairSideScale);
-    this.hairSideLContainer.add(this.hairSideLImage);
+    
+    // 左横髪メッシュ
+    const hairSideLImageTextureWidth = this.hairSideLImage.width * hairSideScale;
+    const hairSideLImageTextureHeight = this.hairSideLImage.height * hairSideScale;
+    this.hairSideLStrip = new SingleColumnHairStrip(
+      this.scene,
+      HAIR_SIDE_L_TEXTURE_KEY,
+      5,
+      hairSideLImageTextureWidth,
+      hairSideLImageTextureHeight
+    );
+    this.hairSideLStrip.setPosition(-20, 100);
+    this.hairSideLContainer.add(this.hairSideLStrip);
+    
+    //this.hairSideLImage.setScale(hairSideScale);
+    //this.hairSideLContainer.add(this.hairSideLImage);
+    this.hairSideLImage.setVisible(false);
     
     // 前髪イメージ
     this.hairFrontImage = this.scene.add.image(0, -148, FACE_ATLAS_KEY, FACE_ATLAS_PART.HAIR_FRONT);
