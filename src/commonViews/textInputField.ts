@@ -28,6 +28,8 @@ export class TextInputField extends Phaser.GameObjects.Container {
   private leftOnUnfocus = 0;
   private bottomDiffOnUnfocus = 0;
   
+  private prevTextValue = "";
+  
   private debugFixedTextLabel?: TextLabel;
   
   constructor(
@@ -81,29 +83,15 @@ export class TextInputField extends Phaser.GameObjects.Container {
       this._onTextUpdate.on(txt);
     };
 
-    let prevValue = "";
     this.inputElement.addEventListener('keydown', (e) => {
       // エンターキーか
       const isEnter = e.key === 'Enter';
       if (!isEnter) return;
-      // 変換中か
-      const isComposing = e.isComposing;
-      if (isComposing) return;
-
-      // 直前から値が変わっていない ＝ 新しい文字が入力されていない
-      const txt = this.inputElement.value;
-      const isSameTextPrev = txt === prevValue;
-
-      // 確定
-      if (isSameTextPrev) {
-        e.preventDefault();
-        console.log("確定Enterされたテキスト:", txt);
-        this._onTextFixed.on(txt);
-        this.inputElement.blur();
-      }
-      // 値を更新
-      else {
-        prevValue = txt;
+      
+      if (isMobile) {
+        this.onEnterKeyDownOnMobile(e);
+      } else {
+        this.onEnterKeyDownOnPC(e);
       }
     });
 
@@ -124,7 +112,48 @@ export class TextInputField extends Phaser.GameObjects.Container {
       this.isVisibleInHierarchy = isVisibleInHierarchy;
     });
   }
+  
+  private onEnterKeyDownOnMobile(e:KeyboardEvent) {
+    // 変換中か
+    const isComposing = e.isComposing;
+    if (isComposing) return;
 
+    const txt = this.inputElement.value;
+
+    e.preventDefault();
+    console.log("確定Enterされたテキスト:", txt);
+    this._onTextFixed.on(txt);
+    this.inputElement.blur();
+  }
+  
+  /**
+   * エンターキー押下時処理（PC）
+   */
+  private onEnterKeyDownOnPC(e:KeyboardEvent) {
+    // 変換中か
+    const isComposing = e.isComposing;
+    if (isComposing) return;
+
+    // 直前から値が変わっていない ＝ 新しい文字が入力されていない
+    const txt = this.inputElement.value;
+    const isSameTextPrev = txt === this.prevTextValue;
+
+    // 確定
+    if (isSameTextPrev) {
+      e.preventDefault();
+      console.log("確定Enterされたテキスト:", txt);
+      this._onTextFixed.on(txt);
+      this.inputElement.blur();
+    }
+    // 値を更新
+    else {
+      this.prevTextValue = txt;
+    }
+  }
+
+  /**
+   * 位置更新
+   */
   private updatePosition() {
     if (this.isFocused) {
       this.checkViewportPosition();
