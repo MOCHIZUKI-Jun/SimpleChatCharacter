@@ -10,9 +10,10 @@ import {
 import {GetColorCodeByRGB} from "../utility/colorUtility.ts";
 import {getWorldPos} from "../utility/transformUtility.ts";
 import {waitMilliSeconds} from "../utility/asyncUtility.ts";
+import {tweenAsync} from "../utility/tweenAsync.ts";
 
 const ANCHOR_DEBUG_MODE = false;
-const ANIMATION_DEBUG_MODE = true;
+const ANIMATION_DEBUG_MODE = false;
 
 type Container = Phaser.GameObjects.Container;
 type Rectangle = Phaser.GameObjects.Rectangle;
@@ -73,6 +74,9 @@ export class CharacterView extends Phaser.GameObjects.Container {
   private hairSideLImage!: Image
   // 前髪のイメージ
   private hairFrontImage!: Image;
+  
+  // 王冠のコンテナ
+  private crownContainer!: Container;
   // 王冠のイメージ
   private crownImage!: Image;
   
@@ -112,17 +116,97 @@ export class CharacterView extends Phaser.GameObjects.Container {
     
     this.create();
     
-    if (ANCHOR_DEBUG_MODE) {
-      this.showDebugAnchors();
-    }
     
     this.setEyes(true);
     this.setMouth(true);
     
     const cancelContext = new CancelContext();
     this.playEyeBlinkLoopAsync(cancelContext).then();
+    this.playSideShakeLoopAsync(cancelContext, 7, 1000).then();
+    this.playTailShakeLoopAsync(cancelContext, 15, 800).then();
+
+    this.scene.events.on("update", () => {
+      this.onUpdate(this.scene.game.loop.delta);
+    });
     
+    if (ANCHOR_DEBUG_MODE) this.showDebugAnchors();
     if (ANIMATION_DEBUG_MODE) this.playDebugAnimAsync().then();
+  }
+  
+  /**
+   * 尻尾を左右に揺らすループ
+   */
+  public async playTailShakeLoopAsync(cancelContext: CancelContext, degree: number, durationMs: number) {
+    while (!cancelContext.isCancelled) {
+      // 右へ
+      await tweenAsync(
+        this.scene,
+        {
+          targets: this.tailContainer,
+          angle: degree,
+          duration: durationMs * 0.5,
+          ease: "Sine.easeInOut",
+        }
+      );
+      // 左へ
+      await tweenAsync(
+        this.scene,
+        {
+          targets: this.tailContainer,
+          angle: -degree,
+          duration: durationMs,
+          ease: "Sine.easeInOut",
+        }
+      );
+    }
+  }
+  
+  /**
+   * 体を左右に揺らすループ
+   */
+  public async playSideShakeLoopAsync(cancelContext: CancelContext, degree: number, durationMs: number) {
+    // 右へ
+    await tweenAsync(
+      this.scene,
+      {
+        targets: this.bodyRotateContainer,
+        angle: degree,
+        duration: durationMs * 0.5,
+        ease: "Sine.easeInOut",
+      }
+    );
+    while (!cancelContext.isCancelled) {
+      // 左へ
+      await tweenAsync(
+        this.scene,
+        {
+          targets: this.bodyRotateContainer,
+          angle: -degree,
+          duration: durationMs,
+          ease: "Sine.easeInOut",
+        }
+      );
+      // 右へ
+      await tweenAsync(
+        this.scene,
+        {
+          targets: this.bodyRotateContainer,
+          angle: degree,
+          duration: durationMs,
+          ease: "Sine.easeInOut",
+        }
+      );
+    }
+    // 中心へ
+    await tweenAsync(
+      this.scene,
+      {
+        targets: this.bodyRotateContainer,
+        angle: 0,
+        duration: durationMs * 0.5,
+        ease: "Sine.easeInOut",
+      }
+    );
   }
   
   /**
@@ -198,6 +282,37 @@ export class CharacterView extends Phaser.GameObjects.Container {
   public setMouth(isOpen: boolean) {
     this.mouthOpenImage.visible = isOpen;
     this.mouthCloseImage.visible = !isOpen;
+  }
+  
+  /**
+   * 首を回転
+   */
+  public rotateHead(degree: number) {
+    const useDegree = Phaser.Math.Clamp(degree, -30, 30);
+    const radian = Phaser.Math.DegToRad(useDegree);
+    this.headFrontContainer.setRotation(radian);
+    this.headBackContainer.setRotation(radian);
+  }
+  
+  /**
+   * 王冠を回転
+   */
+  public rotateCrown(degree: number) {
+    const useDegree = Phaser.Math.Clamp(degree, -30, 30);
+    const radian = Phaser.Math.DegToRad(useDegree);
+    this.crownContainer.setRotation(radian);
+  }
+  
+  /**
+   * フレーム更新時
+   */
+  private onUpdate(_deltaTime: number) {
+    // 体の回転に合わせて頭を傾ける
+    const bodyRotationDeg = this.bodyRotateContainer.angle;
+    const headRotationDeg = bodyRotationDeg * 0.96;
+    this.rotateHead(headRotationDeg);
+    const crownRotationDeg = bodyRotationDeg * 0.5;
+    this.rotateCrown(crownRotationDeg);
   }
   
   /**
@@ -293,10 +408,13 @@ export class CharacterView extends Phaser.GameObjects.Container {
     this.hairFrontImage.setScale(hairFrontScale);
     this.headFrontContainer.add(this.hairFrontImage);
     
+    // 王冠コンテナ
+    this.crownContainer = this.createContainer(0, -270);
+    this.headFrontContainer.add(this.crownContainer);
     // 王冠イメージ
-    this.crownImage = this.scene.add.image(0, -290, FACE_ATLAS_KEY, FACE_ATLAS_PART.CROWN);
+    this.crownImage = this.scene.add.image(0, -20, FACE_ATLAS_KEY, FACE_ATLAS_PART.CROWN);
     this.crownImage.setScale(crownScale);
-    this.headFrontContainer.add(this.crownImage);
+    this.crownContainer.add(this.crownImage);
     
     // 右目コンテナ
     this.eyeRightContainer = this.createContainer(66, -78);
