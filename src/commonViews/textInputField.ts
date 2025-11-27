@@ -7,7 +7,7 @@ import {isMobile} from "../define.ts";
 import {TextLabel} from "./textLabel.ts";
 import {GetColorCodeTextByRGB} from "../utility/colorUtility.ts";
 
-const DEBUG = true;
+const DEBUG = false;
 
 // スマホでの最小フォントサイズ
 const SAFETY_FONT_SIZE = 16.5;

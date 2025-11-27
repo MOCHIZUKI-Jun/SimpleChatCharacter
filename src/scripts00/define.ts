@@ -33,6 +33,10 @@ export const MOUTH_TEXTURE_PATH = `${import.meta.env.BASE_URL}textures/textures0
 export const TAIL_TEXTURE_KEY = 'image-tail00';
 export const TAIL_TEXTURE_PATH = `${import.meta.env.BASE_URL}textures/textures00/image_tail00.webp`;
 
+// 吹き出しテクスチャ
+export const MESSAGE_TEXTURE_KEY = 'image-msg-back00';
+export const MESSAGE_TEXTURE_PATH = `${import.meta.env.BASE_URL}textures/textures00/image_msg_back.webp`;
+
 /**
  * 顔アトラスのフレーム名
  */
@@ -77,10 +81,10 @@ export const DefineDepth = {
 
 // 背景色
 export const BACKGROUND_COLOR = GetColorCodeByRGB(255, 255, 255);
-// ラベルテキスト色
-export const LABEL_TEXT_COLOR = GetColorCodeTextByRGB(60, 60, 60);
-// ラベルテキストサイズ
-export const LABEL_TEXT_SIZE = 30;
+// テキスト色
+export const TEXT_COLOR = GetColorCodeTextByRGB(60, 60, 60);
+// テキストサイズ
+export const TEXT_SIZE = 30;
 
 // 入力フィールドバーの高さ
 export const INPUT_FIELD_BAR_HEIGHT = 50;

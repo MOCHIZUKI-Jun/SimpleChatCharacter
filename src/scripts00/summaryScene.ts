@@ -12,16 +12,19 @@ import {
   HAIR_SIDE_L_TEXTURE_PATH,
   HAIR_SIDE_R_TEXTURE_KEY,
   HAIR_SIDE_R_TEXTURE_PATH,
+  MESSAGE_TEXTURE_KEY,
+  MESSAGE_TEXTURE_PATH,
   MOUTH_TEXTURE_KEY,
   MOUTH_TEXTURE_PATH,
   TAIL_TEXTURE_KEY,
-  TAIL_TEXTURE_PATH,
+  TAIL_TEXTURE_PATH, TEXT_SIZE,
 } from "./define.ts";
 import {BackgroundView} from "../commonViews/backgroundView.ts";
 import {FpsView} from "../commonViews/fpsView.ts";
 import {SimpleDisposableInterface} from "../utility/simpleDisposableInterface.ts";
 import {CharacterView} from "./characterView.ts";
 import {InputFieldView} from "./inputFieldView.ts";
+import {MessageView} from "./messageView.ts";
 
 
 /**
@@ -62,6 +65,7 @@ export class SummaryScene extends Phaser.Scene {
     this.load.image(BODY_TEXTURE_KEY, BODY_TEXTURE_PATH);
     this.load.image(MOUTH_TEXTURE_KEY, MOUTH_TEXTURE_PATH);
     this.load.image(TAIL_TEXTURE_KEY, TAIL_TEXTURE_PATH);
+    this.load.image(MESSAGE_TEXTURE_KEY, MESSAGE_TEXTURE_PATH);
   }
 
   /**
@@ -88,6 +92,9 @@ export class SummaryScene extends Phaser.Scene {
     
     // テキスト入力ビューを追加
     this.inputFieldView = new InputFieldView(this);
+    
+    const test = new MessageView(this, TEXT_SIZE, 400, 4);
+    test.setPosition(500,500);
     
     // FPS表示
     new FpsView(this);

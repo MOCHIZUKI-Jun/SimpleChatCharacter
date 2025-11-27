@@ -10,7 +10,9 @@ export class InputFieldView extends Phaser.GameObjects.Container {
   
   private bar!: Phaser.GameObjects.Rectangle;
   private _textInputField!: TextInputField;
-  public textInputField!: TextInputField;
+  public get textInputField() {
+    return this._textInputField;
+  }
   
   /**
    * コンストラクタ

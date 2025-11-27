@@ -4,7 +4,7 @@ import {
   BACKGROUND_COLOR,
   DefineDepth,
   FACE_ATLAS_PATH,
-  FACE_SHEET_PATH,
+  FACE_SHEET_PATH, LABEL_TEXT_COLOR,
   LABEL_TEXT_SIZE,
   SAMPLE_IMAGE_PATH,
   TITLE,
@@ -13,7 +13,6 @@ import {BackgroundView} from "../commonViews/backgroundView.ts";
 import {FpsView} from "../commonViews/fpsView.ts";
 import {SimpleDisposableInterface} from "../utility/simpleDisposableInterface.ts";
 import {TextLabel} from "../commonViews/textLabel.ts";
-import {LABEL_TEXT_COLOR} from "../scripts00/define.ts";
 import {getWorldPos} from "../utility/transformUtility.ts";
 
 const SAMPLE_IMAGE_KEY = 'sample-image';
