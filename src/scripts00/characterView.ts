@@ -387,7 +387,7 @@ export class CharacterView extends Phaser.GameObjects.Container {
     const bodyRotationDeg = this.bodyRotateContainer.angle;
     const headRotationDeg = bodyRotationDeg * 0.96;
     this.rotateHead(headRotationDeg);
-    const crownRotationDeg = bodyRotationDeg * 0.5;
+    const crownRotationDeg = bodyRotationDeg * 2.0;
     this.rotateCrown(crownRotationDeg);
   }
   
@@ -485,10 +485,10 @@ export class CharacterView extends Phaser.GameObjects.Container {
     this.headFrontContainer.add(this.hairFrontImage);
     
     // 王冠コンテナ
-    this.crownContainer = this.createContainer(0, -270);
+    this.crownContainer = this.createContainer(0, -220);
     this.headFrontContainer.add(this.crownContainer);
     // 王冠イメージ
-    this.crownImage = this.scene.add.image(0, -20, FACE_ATLAS_KEY, FACE_ATLAS_PART.CROWN);
+    this.crownImage = this.scene.add.image(0, -75, FACE_ATLAS_KEY, FACE_ATLAS_PART.CROWN);
     this.crownImage.setScale(crownScale);
     this.crownContainer.add(this.crownImage);
     
