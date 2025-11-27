@@ -4,7 +4,7 @@ import {AssetLoader} from "../utility/assetLoader.ts";
 import {
   BACKGROUND_COLOR,
   BODY_TEXTURE_KEY,
-  BODY_TEXTURE_PATH,
+  BODY_TEXTURE_PATH, DefineDepth,
   FACE_ATLAS_JSON_PATH,
   FACE_ATLAS_KEY,
   FACE_ATLAS_PATH,
@@ -19,7 +19,7 @@ import {
   MOUTH_TEXTURE_KEY,
   MOUTH_TEXTURE_PATH,
   TAIL_TEXTURE_KEY,
-  TAIL_TEXTURE_PATH,
+  TAIL_TEXTURE_PATH, TEXT_COLOR, TEXT_SIZE, VERSION_TEXT,
 } from "./define.ts";
 import {BackgroundView} from "../commonViews/backgroundView.ts";
 import {FpsView} from "../commonViews/fpsView.ts";
@@ -30,6 +30,7 @@ import {MessageViewSystem} from "./messageViewSystem.ts";
 import {SimpleMessageBroker} from "../utility/simpleMessageBroker.ts";
 import {CuteMockLLM} from "./cuteMockLLM.ts";
 import {CharacterViewSystem} from "./characterViewSystem.ts";
+import {TextLabel} from "../commonViews/textLabel.ts";
 
 
 /**
@@ -101,6 +102,20 @@ export class SummaryScene extends Phaser.Scene {
     this.inputFieldView = new InputFieldView(this);
     // FPS表示
     new FpsView(this);
+    // バージョンラベル
+    const versionLabel = new TextLabel(
+      this,
+      TEXT_COLOR,
+      1,
+      20
+    );
+    versionLabel.setText(VERSION_TEXT);
+    versionLabel.setDepth(DefineDepth.UI);
+    const versionTextSize = versionLabel.getTextDisplaySize();
+    versionLabel.setPosition(
+      versionTextSize.width/2 + 10,
+      versionTextSize.height/2 + 40
+    );
     
     // キャラ表示システム
     this.characterViewSystem = new CharacterViewSystem(

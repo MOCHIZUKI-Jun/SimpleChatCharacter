@@ -139,8 +139,8 @@ export class TextInputField extends Phaser.GameObjects.Container {
    */
   private onEnterKeyDownOnPC(e:KeyboardEvent) {
     // 変換中か
-    const isComposing = e.isComposing;
-    if (isComposing) return;
+    //const isComposing = e.isComposing;
+    //if (isComposing) return;
 
     // 直前から値が変わっていない ＝ 新しい文字が入力されていない
     const txt = this.inputElement.value;

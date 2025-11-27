@@ -33,6 +33,16 @@ export class TextLabel extends Phaser.GameObjects.Container {
   }
   
   /**
+   * 文字列の表示サイズ取得
+   */
+  public getTextDisplaySize() {
+    return {
+      width: this.text.displayWidth,
+      height: this.text.displayHeight,
+    };
+  }
+  
+  /**
    * アニメーション付きで文字列セット
    */
   public setTextAsync(str: string, delay = 0) {
