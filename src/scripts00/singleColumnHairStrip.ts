@@ -20,13 +20,16 @@ class VertsControlUnit {
 export class HairStripConfig  {
   moveDiffCoef: number;
   lerpCoef: number;
+  moveBeginIndex: number;
   
   constructor(
-    moveDiffCoef: number,
-    lerpCoef: number
+    moveDiffCoef: number = 0.02,
+    lerpCoef: number = 0.2,
+    moveBeginIndex: number = 0
   ) {
     this.moveDiffCoef = moveDiffCoef;
     this.lerpCoef = lerpCoef;
+    this.moveBeginIndex = moveBeginIndex;
   }
 }
 
@@ -38,9 +41,9 @@ export class SingleColumnHairStrip extends Phaser.GameObjects.Container {
   private mesh: Phaser.GameObjects.Mesh;
 
   // 設定
-  private config:HairStripConfig = new HairStripConfig(0.02, 0.2);
+  private config:HairStripConfig = new HairStripConfig();
   
-  private isEnable = true;
+  private isEnable = false;
   private prevWorldPos = new Phaser.Math.Vector2();
 
   // 頂点グループ(頂点インデックス順)
@@ -55,10 +58,11 @@ export class SingleColumnHairStrip extends Phaser.GameObjects.Container {
     width: number,
     height: number,
     config?: HairStripConfig,
+    atlasKey?: string,
     isDebug = false
   ) {
     super(scene, 0, 0);
-    this.mesh = scene.add.mesh(0, 0, textureKey);
+    this.mesh = scene.add.mesh(0, 0, textureKey, atlasKey);
     this.add(this.mesh);
 
     // 設定
@@ -70,6 +74,7 @@ export class SingleColumnHairStrip extends Phaser.GameObjects.Container {
     Phaser.Geom.Mesh.GenerateGridVerts({
       mesh: this.mesh,
       texture: textureKey,
+      frame: atlasKey,
       widthSegments: cols,
       heightSegments: rows,
       isOrtho: true
@@ -171,20 +176,23 @@ export class SingleColumnHairStrip extends Phaser.GameObjects.Container {
     if (!this.isEnable) return;
     
     const worldPosition = getWorldPos(this);
+    const beginIndex = this.config.moveBeginIndex;
+    const moveDiffCoef = this.config.moveDiffCoef;
+    const lerpCoef = this.config.lerpCoef;
     
-    for (let i = 0; i < this.vertsControlUnits.length; i++) {
+    for (let i = beginIndex; i < this.vertsControlUnits.length; i++) {
       const diffX = worldPosition.x - this.prevWorldPos.x;
-      const movePosX = -diffX  * (i / this.vertsControlUnits.length) * this.config.moveDiffCoef;
+      const movePosX = -diffX  * ((i - beginIndex) / this.vertsControlUnits.length) * moveDiffCoef;
 
       const unit = this.vertsControlUnits[i];
       const targetX = unit.unitPos.x + movePosX;
       
       // 左右の頂点を移動
       for (const v of unit.leftVerts) {
-        v.x = Phaser.Math.Linear(v.x, unit.initUnitPos.x + unit.initDiffLeft.x + targetX, this.config.lerpCoef);
+        v.x = Phaser.Math.Linear(v.x, unit.initUnitPos.x + unit.initDiffLeft.x + targetX, lerpCoef);
       }
       for (const v of unit.rightVerts) {
-        v.x = Phaser.Math.Linear(v.x, unit.initUnitPos.x + unit.initDiffRight.x + targetX, this.config.lerpCoef);
+        v.x = Phaser.Math.Linear(v.x, unit.initUnitPos.x + unit.initDiffRight.x + targetX, lerpCoef);
       }
     }
 

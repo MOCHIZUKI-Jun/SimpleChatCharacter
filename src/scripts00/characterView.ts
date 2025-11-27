@@ -11,7 +11,7 @@ import {GetColorCodeByRGB} from "../utility/colorUtility.ts";
 import {getWorldPos} from "../utility/transformUtility.ts";
 import {waitMilliSeconds} from "../utility/asyncUtility.ts";
 import {tweenAsync} from "../utility/tweenAsync.ts";
-import {SingleColumnHairStrip} from "./singleColumnHairStrip.ts";
+import {HairStripConfig, SingleColumnHairStrip} from "./singleColumnHairStrip.ts";
 
 const ANCHOR_DEBUG_MODE = false;
 const ANIMATION_DEBUG_MODE = false;
@@ -63,6 +63,8 @@ export class CharacterView extends Phaser.GameObjects.Container {
   private headBackContainer!: Container;
   // 後ろ髪のイメージ
   private hairBackImage!: Image;
+  // 後ろ髪メッシュ
+  private hairBackStrip!: SingleColumnHairStrip;
   // 右角のコンテナ
   private hornRightContainer!: Container;
   // 右角のイメージ
@@ -129,6 +131,7 @@ export class CharacterView extends Phaser.GameObjects.Container {
     
     this.hairSideRStrip.setEnable(true);
     this.hairSideLStrip.setEnable(true);
+    this.hairBackStrip.setEnable(true);
     
     this.setEyes(true);
     this.setMouth(true);
@@ -434,10 +437,30 @@ export class CharacterView extends Phaser.GameObjects.Container {
     // 頭背面コンテナ
     this.headBackContainer = this.createContainer(0, -540);
     this.bodyRotateContainer.add(this.headBackContainer);
+    
     // 後ろ髪イメージ
     this.hairBackImage = this.scene.add.image(10, -20, FACE_ATLAS_KEY, FACE_ATLAS_PART.HAIR_BACK);
-    this.hairBackImage.setScale(hairBackScale);
-    this.headBackContainer.add(this.hairBackImage);
+    
+    // 後ろ髪メッシュ
+    const hairBackImageTextureWidth = this.hairBackImage.width * hairBackScale;
+    const hairBackImageTextureHeight = this.hairBackImage.height * hairBackScale;
+    this.hairBackStrip = new SingleColumnHairStrip(
+      this.scene,
+      FACE_ATLAS_KEY,
+      5,
+      hairBackImageTextureWidth,
+      hairBackImageTextureHeight,
+      new HairStripConfig(
+        0.08, 0.05, 3
+      ),
+      FACE_ATLAS_PART.HAIR_BACK
+    );
+    this.hairBackStrip.setPosition(10, -20);
+    this.headBackContainer.add(this.hairBackStrip);
+
+    //this.hairBackImage.setScale(hairBackScale);
+    //this.headBackContainer.add(this.hairBackImage);
+    this.hairBackImage.setVisible(false);
     
     // 体イメージ
     this.bodyImage = this.scene.add.image(0, -240, BODY_TEXTURE_KEY);
@@ -486,7 +509,10 @@ export class CharacterView extends Phaser.GameObjects.Container {
       HAIR_SIDE_R_TEXTURE_KEY,
       5,
       hairSideRImageTextureWidth,
-      hairSideRImageTextureHeight
+      hairSideRImageTextureHeight,
+      new HairStripConfig(
+        0.02, 0.2, 0
+      ),
     );
     this.hairSideRStrip.setPosition(20, 100);
     this.hairSideRContainer.add(this.hairSideRStrip);
@@ -510,7 +536,10 @@ export class CharacterView extends Phaser.GameObjects.Container {
       HAIR_SIDE_L_TEXTURE_KEY,
       5,
       hairSideLImageTextureWidth,
-      hairSideLImageTextureHeight
+      hairSideLImageTextureHeight,
+      new HairStripConfig(
+        0.02, 0.2, 0
+      ),
     );
     this.hairSideLStrip.setPosition(-20, 100);
     this.hairSideLContainer.add(this.hairSideLStrip);
