@@ -14,7 +14,6 @@ import {tweenAsync} from "../utility/tweenAsync.ts";
 import {HairStripConfig, SingleColumnHairStrip} from "./singleColumnHairStrip.ts";
 
 const ANCHOR_DEBUG_MODE = false;
-const ANIMATION_DEBUG_MODE = false;
 
 type Container = Phaser.GameObjects.Container;
 type Rectangle = Phaser.GameObjects.Rectangle;
@@ -39,7 +38,7 @@ export class CancelContext {
  */
 export class CharacterView extends Phaser.GameObjects.Container {
 
-  private cancelContext : CancelContext;
+  //private cancelContext : CancelContext;
   
   private containers: Container[] = [];
   private debugAnchors: Rectangle[] = [];
@@ -136,25 +135,11 @@ export class CharacterView extends Phaser.GameObjects.Container {
     this.setEyes(true);
     this.setMouth(true);
     
-    this.cancelContext = new CancelContext();
-    this.playEyeBlinkLoopAsync(this.cancelContext).then();
-    this.playSideShakeLoopAsync(this.cancelContext).then();
-    this.playTailShakeLoopAsync(this.cancelContext).then();
-    //this.playTalkingLoopAsync(this.cancelContext).then();
-    
     this.scene.events.on("update", () => {
       this.onUpdate(this.scene.game.loop.delta);
     });
     
     if (ANCHOR_DEBUG_MODE) this.showDebugAnchors();
-    if (ANIMATION_DEBUG_MODE) this.playDebugAnimAsync().then();
-  }
-  
-  /**
-   * 現在のアニメーションを停止
-   */
-  public stopCurrentAnimation() {
-    this.cancelContext.cancel();
   }
   
   /**
@@ -164,6 +149,19 @@ export class CharacterView extends Phaser.GameObjects.Container {
     this.playSingleTailShakeAsync().then();
     this.playSingleDownShakeAsync().then();
     while (!cancelContext.isCancelled) {
+      await this.playSingleMouthOpenCloseAsync();
+      await waitMilliSeconds(100);
+    }
+  }
+  
+  /**
+    * トークアニメーション指定時間再生
+   */
+  public async playTalingAsync(durationMs: number) {
+    const endTime = Date.now() + durationMs;
+    this.playSingleTailShakeAsync().then();
+    this.playSingleDownShakeAsync().then();
+    while (Date.now() < endTime) {
       await this.playSingleMouthOpenCloseAsync();
       await waitMilliSeconds(100);
     }
@@ -637,28 +635,32 @@ export class CharacterView extends Phaser.GameObjects.Container {
   /**
    * デバッグ用アニメーション再生
    */
-  private async playDebugAnimAsync() {
+  public async playDebugAnimAsync(cancelContext: CancelContext) {
     console.log("CharacterView: playDebugAnim");
 
+    this.playEyeBlinkLoopAsync(cancelContext).then();
+    this.playSideShakeLoopAsync(cancelContext).then();
+    this.playTailShakeLoopAsync(cancelContext).then();
+    
     await waitMilliSeconds(1000);
     for (let i = 0; i < 10; i++) {
       await this.playSingleMouthOpenCloseAsync();
       await waitMilliSeconds(100);
     }
     
-    this.cancelContext?.cancel();
+    cancelContext?.cancel();
     
-    this.cancelContext = new CancelContext();
+    cancelContext = new CancelContext();
     await waitMilliSeconds(2000);
-    this.playTalkingLoopAsync(this.cancelContext).then();
+    this.playTalkingLoopAsync(cancelContext).then();
     
     await waitMilliSeconds(6000);
-    this.cancelContext?.cancel();
+    cancelContext?.cancel();
     
-    this.cancelContext = new CancelContext();
+    cancelContext = new CancelContext();
     await waitMilliSeconds(2000);
-    this.playSideShakeLoopAsync(this.cancelContext).then();
-    this.playTailShakeLoopAsync(this.cancelContext).then();
+    this.playSideShakeLoopAsync(cancelContext).then();
+    this.playTailShakeLoopAsync(cancelContext).then();
   }
   
   /**
