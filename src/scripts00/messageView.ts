@@ -4,7 +4,7 @@ import {GetColorCodeByRGB} from "../utility/colorUtility.ts";
 import {FONT_SMARTFONTUI} from "../define.ts";
 import {waitMilliSeconds} from "../utility/asyncUtility.ts";
 
-const DEBUG = true;
+const DEBUG = false;
 
 /**
  * メッセージ表示ビュー
@@ -36,7 +36,7 @@ export class MessageView extends Phaser.GameObjects.Container {
     this.isFlip = isFlip;
     this.fillColor = fillColor;
     
-    this.setDepth(DefineDepth.UI);
+    this.setDepth(DefineDepth.MESSAGE);
     
     this.createImage();
     this.createText();
@@ -50,9 +50,14 @@ export class MessageView extends Phaser.GameObjects.Container {
     }
   }
   
+  /**
+   * テキストセット
+   */
   public setText(message: string) {
     this.text.setText(message);
     this.updateDisplay();
+    
+    return this.nineSlice.displayHeight;
   }
   
   private updateDisplay() {

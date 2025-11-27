@@ -19,15 +19,16 @@ import {
   MOUTH_TEXTURE_KEY,
   MOUTH_TEXTURE_PATH,
   TAIL_TEXTURE_KEY,
-  TAIL_TEXTURE_PATH, TEXT_SIZE,
+  TAIL_TEXTURE_PATH,
 } from "./define.ts";
 import {BackgroundView} from "../commonViews/backgroundView.ts";
 import {FpsView} from "../commonViews/fpsView.ts";
 import {SimpleDisposableInterface} from "../utility/simpleDisposableInterface.ts";
 import {CharacterView} from "./characterView.ts";
 import {InputFieldView} from "./inputFieldView.ts";
-import {MessageView} from "./messageView.ts";
-import {GetColorCodeByRGB} from "../utility/colorUtility.ts";
+import {MessageViewSystem} from "./messageViewSystem.ts";
+import {SimpleMessageBroker} from "../utility/simpleMessageBroker.ts";
+import {CuteMockLLM} from "./cuteMockLLM.ts";
 
 
 /**
@@ -42,6 +43,8 @@ export class SummaryScene extends Phaser.Scene {
   private characterView!: CharacterView;
   // テキスト入力ビュー
   private inputFieldView!: InputFieldView;
+  
+  private messageViewSystem!: MessageViewSystem;
 
   // 表示フラグ
   private isShow = false;
@@ -83,32 +86,33 @@ export class SummaryScene extends Phaser.Scene {
     const idx = params.get('idx');
     console.log(`idx: ${idx}`);
     
+    // メッセージブローカ
+    const messageBroker = new SimpleMessageBroker();
+    // モックAPIクライアント
+    const mockApiClient = new CuteMockLLM();
+    
     // 背景
     new BackgroundView(this, BACKGROUND_COLOR);
-    // テキストラベル
-    //this.textLabel = new TextLabel(this, LABEL_TEXT_COLOR, 1, LABEL_TEXT_SIZE);
-    //this.textLabel.setPosition(canvas.width/2, canvas.height * 0.95);
-    //this.textLabel.setDepth(DefineDepth.UI);
-    //this.textLabel.setTextAsync(TITLE).then();
-    
     // キャラクタービューを追加
     this.characterView = new CharacterView(this);
-    
     // テキスト入力ビューを追加
     this.inputFieldView = new InputFieldView(this);
-    
-    const test = new MessageView(this, TEXT_SIZE, 400, 4, false, GetColorCodeByRGB(200,200,200));
-    test.setPosition(500,500);
-    const test2 = new MessageView(this, TEXT_SIZE, 400, 4, true, GetColorCodeByRGB(200,200,200));
-    test2.setPosition(800,700);
-    
     // FPS表示
     new FpsView(this);
+    
+    // メッセージ表示システム
+    this.messageViewSystem = new MessageViewSystem(
+      this,
+      messageBroker,
+      this.inputFieldView,
+      mockApiClient,
+    );
   }
   
   public dispose() {
     this.disposables.forEach(d => d.dispose());
     this.characterView.dispose();
+    this.messageViewSystem.dispose();
   }
   
   /**

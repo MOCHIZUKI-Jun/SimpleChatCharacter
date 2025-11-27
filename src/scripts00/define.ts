@@ -78,6 +78,7 @@ export const DefineDepth = {
   BACKGROUND: -1,
   CHARACTER: 10,
   DEBUG_ANCHOR: 90,
+  MESSAGE: 98,
   UI: 100,
 }
 

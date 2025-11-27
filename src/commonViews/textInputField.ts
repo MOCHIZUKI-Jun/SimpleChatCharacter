@@ -113,6 +113,14 @@ export class TextInputField extends Phaser.GameObjects.Container {
     });
   }
   
+  /**
+   * クリア
+   */
+  public clearField() {
+    this.inputElement.value = "";
+    this.prevTextValue = "";
+  }
+  
   private onEnterKeyDownOnMobile(e:KeyboardEvent) {
     // 変換中か
     const isComposing = e.isComposing;
