@@ -19,7 +19,9 @@ import {
   MOUTH_TEXTURE_KEY,
   MOUTH_TEXTURE_PATH,
   TAIL_TEXTURE_KEY,
-  TAIL_TEXTURE_PATH, TEXT_COLOR, TEXT_SIZE, VERSION_TEXT,
+  TAIL_TEXTURE_PATH,
+  TEXT_COLOR,
+  VERSION_TEXT,
 } from "./define.ts";
 import {BackgroundView} from "../commonViews/backgroundView.ts";
 import {FpsView} from "../commonViews/fpsView.ts";
