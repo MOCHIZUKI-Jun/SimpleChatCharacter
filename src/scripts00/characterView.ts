@@ -391,10 +391,11 @@ export class CharacterView extends Phaser.GameObjects.Container {
    * フレーム更新時
    */
   private onUpdate(_deltaTime: number) {
-    // 体の回転に合わせて頭を傾ける
     const bodyRotationDeg = this.bodyRotateContainer.angle;
+    // 体の回転に合わせて頭を傾ける
     const headRotationDeg = bodyRotationDeg * 0.96;
     this.rotateHead(headRotationDeg);
+    // 体の回転に合わせて王冠を傾ける
     const crownRotationDeg = bodyRotationDeg * 2.0;
     this.rotateCrown(crownRotationDeg);
   }
