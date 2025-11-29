@@ -348,24 +348,24 @@ export class CharacterView extends Phaser.GameObjects.Container {
    * 右目の開閉
    */
   public setEyeR(isOpen: boolean) {
-    this.eyeRightOpenImage.visible = isOpen;
-    this.eyeRightCloseImage.visible = !isOpen;
+    this.eyeRightOpenImage.setVisible(isOpen);
+    this.eyeRightCloseImage.setVisible(!isOpen);
   }
   
   /**
    * 左目の開閉
    */
   public setEyeL(isOpen: boolean) {
-    this.eyeLeftOpenImage.visible = isOpen;
-    this.eyeLeftCloseImage.visible = !isOpen;
+    this.eyeLeftOpenImage.setVisible(isOpen);
+    this.eyeLeftCloseImage.setVisible(!isOpen);
   }
   
   /**
    * 口の開閉
    */
   public setMouth(isOpen: boolean) {
-    this.mouthOpenImage.visible = isOpen;
-    this.mouthCloseImage.visible = !isOpen;
+    this.mouthOpenImage.setVisible(isOpen);
+    this.mouthCloseImage.setVisible(!isOpen);
   }
   
   /**
