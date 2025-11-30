@@ -30,7 +30,7 @@ import {CharacterView} from "./characterView.ts";
 import {InputFieldView} from "./inputFieldView.ts";
 import {MessageViewSystem} from "./messageViewSystem.ts";
 import {SimpleMessageBroker} from "../utility/simpleMessageBroker.ts";
-import {CuteMockLLM} from "./cuteMockLLM.ts";
+import {CuteMockLLMClientApi} from "./cuteMockLLMClientApi.ts";
 import {CharacterViewSystem} from "./characterViewSystem.ts";
 import {TextLabel} from "../commonViews/textLabel.ts";
 
@@ -94,7 +94,7 @@ export class SummaryScene extends Phaser.Scene {
     // メッセージブローカ
     const messageBroker = new SimpleMessageBroker();
     // モックAPIクライアント
-    const mockApiClient = new CuteMockLLM();
+    const mockApiClient = new CuteMockLLMClientApi();
     
     // 背景
     new BackgroundView(this, BACKGROUND_COLOR);
