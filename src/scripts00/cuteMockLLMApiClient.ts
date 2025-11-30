@@ -3,13 +3,12 @@ import {ApiClientInterface} from "./messageViewSystem.ts";
 /**
  * かわいいモックLLMのAPI
  */
-export class CuteMockLLMClientApi implements ApiClientInterface {
+export class CuteMockLLMApiClient implements ApiClientInterface {
   
   /**
    * @inheritDoc
    */
   public async request(_message: string): Promise<string> {
-    // 簡単なモック応答を生成
     const responses = [
       "うんうん、なるほどガウ⭐︎",
       "えへへ、それいいねガウ⭐︎",
