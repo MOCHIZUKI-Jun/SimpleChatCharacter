@@ -65,7 +65,7 @@ export class CharacterViewSystem {
     
     //　話すアニメーション再生
     this.cancelContext?.cancel();
-    await this.characterView.playTalingAsync(talkMs);
+    await this.characterView.playTalkingAsync(talkMs);
     
     // アイドルアニメーション再生再開
     this.cancelContext = new CancelContext();

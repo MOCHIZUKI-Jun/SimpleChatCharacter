@@ -157,7 +157,7 @@ export class CharacterView extends Phaser.GameObjects.Container {
   /**
     * トークアニメーション指定時間再生
    */
-  public async playTalingAsync(durationMs: number) {
+  public async playTalkingAsync(durationMs: number) {
     const endTime = Date.now() + durationMs;
     this.playSingleTailShakeAsync().then();
     this.playSingleDownShakeAsync().then();
