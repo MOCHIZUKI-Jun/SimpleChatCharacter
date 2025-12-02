@@ -9,7 +9,7 @@ import {
 } from "./define.ts";
 import {GetColorCodeByRGB} from "../utility/colorUtility.ts";
 import {getWorldPos} from "../utility/transformUtility.ts";
-import {waitMilliSeconds} from "../utility/asyncUtility.ts";
+import {waitMilliSeconds, waitUntil} from "../utility/asyncUtility.ts";
 import {tweenAsync} from "../utility/tweenAsync.ts";
 import {HairStripConfig, SingleColumnHairStrip} from "./singleColumnHairStrip.ts";
 
@@ -116,6 +116,8 @@ export class CharacterView extends Phaser.GameObjects.Container {
   private mouthOpenImage!: Image;
   private mouthCloseImage!: Image;
   
+  private isTailShakingLoop = false;
+  
   /**
    * コンストラクタ
    */
@@ -140,18 +142,6 @@ export class CharacterView extends Phaser.GameObjects.Container {
     });
     
     if (ANCHOR_DEBUG_MODE) this.showDebugAnchors();
-  }
-  
-  /**
-   * トークアニメーションループ
-   */
-  public async playTalkingLoopAsync(cancelContext: CancelContext) {
-    this.playSingleTailShakeAsync().then();
-    this.playSingleDownShakeAsync().then();
-    while (!cancelContext.isCancelled) {
-      await this.playSingleMouthOpenCloseAsync();
-      await waitMilliSeconds(100);
-    }
   }
   
   /**
@@ -195,6 +185,8 @@ export class CharacterView extends Phaser.GameObjects.Container {
    * 尻尾を左右に揺らすループ
    */
   public async playTailShakeLoopAsync(cancelContext: CancelContext, degree: number = 15, durationMs: number = 800) {
+    this.isTailShakingLoop = true;
+    
     while (!cancelContext.isCancelled) {
       // 右へ
       await tweenAsync(
@@ -227,12 +219,17 @@ export class CharacterView extends Phaser.GameObjects.Container {
         ease: "Sine.easeInOut",
       }
     );
+    
+    this.isTailShakingLoop = false;
   }
   
   /**
    * 尻尾を一度だけ左右に揺らすアニメーションを再生
    */
-  public playSingleTailShakeAsync(degree: number = 20, durationMs: number = 600) {
+  public async playSingleTailShakeAsync(degree: number = 20, durationMs: number = 600) {
+    
+    await waitUntil(() => !this.isTailShakingLoop);
+    
     return tweenAsync(
       this.scene,
       {
@@ -653,7 +650,7 @@ export class CharacterView extends Phaser.GameObjects.Container {
     
     cancelContext = new CancelContext();
     await waitMilliSeconds(2000);
-    this.playTalkingLoopAsync(cancelContext).then();
+    this.playTalkingAsync(3000).then();
     
     await waitMilliSeconds(6000);
     cancelContext?.cancel();
