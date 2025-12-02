@@ -1,7 +1,7 @@
 import {GetColorCodeByRGB, GetColorCodeTextByRGB} from "../utility/colorUtility.ts";
 
 // バージョン番号
-export const VERSION_TEXT = "version 0.1.1";
+export const VERSION_TEXT = "version 0.1.2";
 
 // タイトル
 export const TITLE = "こんにちわ☆";
