@@ -51,5 +51,10 @@ export const createConfig = (scenes: Phaser.Types.Scenes.SceneType[]) => {
         debug: true,
       },
     },
+    fps: {
+      target: 60,
+      min: 30,
+      forceSetTimeOut: false,
+    },
   }
 }

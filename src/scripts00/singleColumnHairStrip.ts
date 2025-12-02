@@ -50,6 +50,9 @@ export class SingleColumnHairStrip extends Phaser.GameObjects.Container {
   private vertexGroups: Phaser.Geom.Mesh.Vertex[][];
   // 制御単位
   private vertsControlUnits: VertsControlUnit[] = [];
+
+  private acc = 0;
+  private readonly fixedDt = 1000 / 60; // 60fps = 16.666... ms
   
   constructor(
     scene: Phaser.Scene,
@@ -155,7 +158,17 @@ export class SingleColumnHairStrip extends Phaser.GameObjects.Container {
     }
 
     this.scene.events.on("update", () => {
-      this.onUpdate(this.scene.game.loop.delta);
+      const delta = this.scene.game.loop.delta;
+      this.acc += delta;
+      // 16.6ms貯まるまでは何もしない（フレームスキップ）
+      if (this.acc < this.fixedDt) {
+        return;
+      }
+      // たまにdeltaがデカいとき用に while で追いつく
+      while (this.acc >= this.fixedDt) {
+        this.acc -= this.fixedDt;
+        this.fixedUpdate(this.fixedDt);
+      }
     });
   }
 
@@ -172,7 +185,7 @@ export class SingleColumnHairStrip extends Phaser.GameObjects.Container {
   /**
    * 毎フレーム呼ぶ
    */
-  onUpdate(_deltaTime: number) {
+  onUpdate(deltaTime: number) {
     if (!this.isEnable) return;
     
     const worldPosition = getWorldPos(this);
@@ -183,16 +196,17 @@ export class SingleColumnHairStrip extends Phaser.GameObjects.Container {
     for (let i = beginIndex; i < this.vertsControlUnits.length; i++) {
       const diffX = worldPosition.x - this.prevWorldPos.x;
       const movePosX = -diffX  * ((i - beginIndex) / this.vertsControlUnits.length) * moveDiffCoef;
+      const deltaTimeFactor = deltaTime / (1000 / 60);
 
       const unit = this.vertsControlUnits[i];
-      const targetX = unit.unitPos.x + movePosX;
+      const targetX = unit.unitPos.x + (movePosX * deltaTimeFactor);
       
       // 左右の頂点を移動
       for (const v of unit.leftVerts) {
-        v.x = Phaser.Math.Linear(v.x, unit.initUnitPos.x + unit.initDiffLeft.x + targetX, lerpCoef);
+        v.x = Phaser.Math.Linear(v.x, unit.initUnitPos.x + unit.initDiffLeft.x + targetX, lerpCoef * deltaTimeFactor);
       }
       for (const v of unit.rightVerts) {
-        v.x = Phaser.Math.Linear(v.x, unit.initUnitPos.x + unit.initDiffRight.x + targetX, lerpCoef);
+        v.x = Phaser.Math.Linear(v.x, unit.initUnitPos.x + unit.initDiffRight.x + targetX, lerpCoef * deltaTimeFactor);
       }
     }
 
@@ -201,5 +215,9 @@ export class SingleColumnHairStrip extends Phaser.GameObjects.Container {
     
     this.debug?.clear();
     this.debug?.lineStyle(1, 0x00ff00);
+  }
+  
+  private fixedUpdate(deltaTime: number) {
+    this.onUpdate(deltaTime);
   }
 }
