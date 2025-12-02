@@ -185,6 +185,7 @@ export class SingleColumnHairStrip extends Phaser.GameObjects.Container {
   /**
    * 毎フレーム呼ぶ
    */
+  private currDiffX = 0;
   onUpdate(deltaTime: number) {
     if (!this.isEnable) return;
     
@@ -192,11 +193,13 @@ export class SingleColumnHairStrip extends Phaser.GameObjects.Container {
     const beginIndex = this.config.moveBeginIndex;
     const moveDiffCoef = this.config.moveDiffCoef;
     const lerpCoef = this.config.lerpCoef;
+
+    const diffX = worldPosition.x - this.prevWorldPos.x;
+    this.currDiffX = Phaser.Math.Linear(this.currDiffX, diffX, 0.2);
+    const deltaTimeFactor = deltaTime / (1000 / 60);
     
     for (let i = beginIndex; i < this.vertsControlUnits.length; i++) {
-      const diffX = worldPosition.x - this.prevWorldPos.x;
-      const movePosX = -diffX  * ((i - beginIndex) / this.vertsControlUnits.length) * moveDiffCoef;
-      const deltaTimeFactor = deltaTime / (1000 / 60);
+      const movePosX = -this.currDiffX  * ((i - beginIndex) / this.vertsControlUnits.length) * moveDiffCoef;
 
       const unit = this.vertsControlUnits[i];
       const targetX = unit.unitPos.x + (movePosX * deltaTimeFactor);
